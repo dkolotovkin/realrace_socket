@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="src" path="src"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="lib" path="D:/trunk/smousesrv/libs/jcl-over-slf4j-1.5.10.jar"/>
+	<classpathentry kind="lib" path="D:/trunk/smousesrv/libs/jid3lib-0.5.4.jar"/>
+	<classpathentry kind="lib" path="D:/trunk/smousesrv/libs/json-taglib-0.4.1.jar"/>
+	<classpathentry kind="lib" path="D:/trunk/smousesrv/libs/logback-classic-0.9.18.jar"/>
+	<classpathentry kind="lib" path="D:/trunk/smousesrv/libs/logback-core-0.9.18.jar"/>
+	<classpathentry kind="lib" path="D:/trunk/smousesrv/libs/mysql-connector-java-5.1.7-bin.jar"/>
+	<classpathentry kind="lib" path="D:/trunk/smousesrv/libs/slf4j-api-1.5.10.jar"/>
+	<classpathentry kind="lib" path="D:/trunk/smousesrv/libs/xSocket-2.8.14.jar"/>
+	<classpathentry kind="lib" path="libs/commons-dbcp-1.4.jar"/>
+	<classpathentry kind="lib" path="libs/commons-pool-1.6.jar"/>
+	<classpathentry kind="output" path="bin"/>
+</classpath>

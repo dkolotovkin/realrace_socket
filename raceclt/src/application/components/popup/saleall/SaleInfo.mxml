@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark" initialize="group1_initializeHandler(event)"
+		 xmlns:mx="library://ns.adobe.com/flex/mx" top="20" width="100%" height="100%" xmlns:button="application.components.button.*" xmlns:money="application.gamecontainer.persinfobar.money.*">
+	
+	<fx:Script>
+		<![CDATA[
+			import application.GameApplication;
+			
+			import mx.collections.ArrayCollection;
+			import mx.events.FlexEvent;
+			
+			import utils.models.item.ItemPresent;
+			import utils.protocol.ProtocolKeys;
+			import utils.protocol.ProtocolValues;
+			
+			protected function onClick(event:MouseEvent):void
+			{
+				if(GameApplication.app.models.userPresents.collection && GameApplication.app.models.userPresents.collection.length > 0){
+					GameApplication.app.callsmanager.call(ProtocolValues.SHOP_SALE_ALL_PRESENTS, onSale);					
+				}
+			}
+			
+			private function onSale(result:Object):void{
+				if(result[ProtocolKeys.VALUE]){
+					GameApplication.app.models.userPresents.collection = new ArrayCollection();
+					GameApplication.app.navigator.goMyRoom();
+				}
+				GameApplication.app.popuper.hidePopUp();
+			}
+			
+			protected function onClickCancel(event:MouseEvent):void
+			{				
+				GameApplication.app.popuper.hidePopUp();
+			}
+
+			protected function group1_initializeHandler(event:FlexEvent):void
+			{
+				GameApplication.app.callsmanager.call(ProtocolValues.SHOP_GET_PRESENTS_PRICE, onGetPrice);
+			}
+			
+			private function onGetPrice(result:Object):void{
+				money.money = int(result[ProtocolKeys.VALUE]);
+			}
+		]]>
+	</fx:Script>
+	
+	<s:VGroup id="contentgr" height="100%" horizontalAlign="center" gap="10" width="100%" paddingLeft="5" paddingRight="5">
+		<s:HGroup verticalAlign="middle">
+			<s:Label text="Продать все подарки за " paddingTop="5" color="0xffffff" fontSize="14" fontWeight="normal"/>
+			<money:Money id="money"/>
+		</s:HGroup>
+		<s:HGroup>
+			<button:GameButton id="ok" label="продать" click="onClick(event)"/>
+			<button:GameButton id="cancel" label="отмена" click="onClickCancel(event)"/>
+		</s:HGroup>
+	</s:VGroup>
+</s:Group>

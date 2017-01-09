@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark" initialize="group1_initializeHandler(event)"
+		 xmlns:mx="library://ns.adobe.com/flex/mx" top="20" width="100%" height="100%" xmlns:button="application.components.button.*" xmlns:money="application.gamecontainer.persinfobar.money.*" xmlns:article="application.gamecontainer.scene.catalog.article.*">	
+	<fx:Script>
+		<![CDATA[
+			import application.GameApplication;
+			import application.GameMode;
+			
+			import mx.events.FlexEvent;
+
+			protected function group1_initializeHandler(event:FlexEvent):void
+			{
+				if(GameApplication.app.config.mode == GameMode.SITE){
+					moneyComponent.visible = moneyComponent.includeInLayout = false;
+					textLbl.text = "Вы можете просматривать страницы пользователей бесплатно.";
+				}else{
+					moneyComponent.visible = moneyComponent.includeInLayout = true;
+					textLbl.text = "Просмотр личной страницы пользователя - платная услуга. При переходе на страницу с вас спишется указанная сумма.";
+				}
+			}
+
+		]]>
+	</fx:Script>
+	
+	
+	<s:VGroup width="100%" height="100%" horizontalAlign="center">
+		<s:Label text="Просмотр личной страницы пользователя" width="360" color="0xFF9933" fontSize="18" fontWeight="normal" textAlign="center"/>
+		<s:Label id="textLbl" text="Просмотр личной страницы пользователя - платная услуга. При переходе на страницу с вас спишется указанная сумма." width="360" color="0xffffff" fontSize="14" fontWeight="normal"/>
+		<s:HGroup width="100%" horizontalAlign="center">
+			<button:GameButton id="okbtn" label="показать"/>
+			<money:Money id="moneyComponent" money="50"/>
+		</s:HGroup>		
+	</s:VGroup>
+</s:Group>

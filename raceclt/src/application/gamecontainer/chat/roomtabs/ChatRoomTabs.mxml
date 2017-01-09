@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" creationComplete="group3_creationCompleteHandler(event)"
+		 xmlns:s="library://ns.adobe.com/flex/spark"
+		 xmlns:mx="library://ns.adobe.com/flex/mx">
+	<s:layout>
+		<s:BasicLayout/>
+	</s:layout>
+	<fx:Script>
+		<![CDATA[
+			import application.GameApplication;
+			
+			import mx.binding.utils.BindingUtils;
+			import mx.events.FlexEvent;
+
+			protected function group3_creationCompleteHandler(event:FlexEvent):void
+			{
+				BindingUtils.bindProperty(tabBar, "maxWidth", this, "width");
+			}
+		]]>
+	</fx:Script>
+	<fx:Declarations>
+		<!-- Разместить невизуальные элементы (например, службы или объекты значений) -->
+	</fx:Declarations>
+	
+	<s:TabBar id="tabBar" height="18" dataProvider="{GameApplication.app.models.chatTabsCollection}" skinClass="application.gamecontainer.chat.roomtabs.ChatRoomTabsSkin"/>
+</s:Group>

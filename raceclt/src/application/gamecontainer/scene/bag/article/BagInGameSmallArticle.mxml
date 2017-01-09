@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:HGroup xmlns:fx="http://ns.adobe.com/mxml/2009" horizontalAlign="center" click="onClick(event)"
+		  xmlns:s="library://ns.adobe.com/flex/spark" buttonMode="true" rollOver="rollOver(event)" rollOut="rollOut(event)"
+		  xmlns:mx="library://ns.adobe.com/flex/mx" xmlns:article="application.gamecontainer.scene.catalog.article.*" xmlns:money="application.gamecontainer.persinfobar.money.*">
+	<fx:Script>
+		<![CDATA[
+			import application.GameApplication;
+			import application.gamecontainer.chat.actionmenu.bagarticle.ActionMenuBagArticle;
+			import application.gamecontainer.chat.actionmenu.bagingamearticle.ActionMenuBagInGameArticle;
+			
+			import mx.events.FlexEvent;
+			
+			import utils.models.ItemPrototype;
+			import utils.models.item.Item;
+			import utils.sound.SoundType;
+			
+			private var _over:Boolean = false;
+			[Bindable]
+			public var itemp:ItemPrototype;
+			
+			protected function rollOver(event:MouseEvent):void{
+				_over = true;
+				updateState();
+			}
+			
+			protected function rollOut(event:MouseEvent):void{
+				_over = false;
+				updateState();
+			}
+			
+			private function updateState ():void{
+				if (_over){
+					article.currentState = "over";
+				}else{
+					article.currentState = "normal";
+				}
+			}
+			
+			public function init(itemp:ItemPrototype):void{
+				article.moviegr.width = article.moviegr.height = 30;
+				this.itemp = itemp;				
+				article.init(Item.createFromItemPrototype(itemp), itemp.price);	
+				this.toolTip = itemp.title + ". Цена: " + itemp.price + " евро";
+			}
+			
+			protected function onClick(event:MouseEvent):void
+			{
+				event.stopPropagation();
+				//GameApplication.app.actionShowerMenu.showMenu(new ActionMenuBagInGameArticle(item));
+//				GameApplication.app.useitemingamemanager.useshopitem(itemp.id);
+				
+				GameApplication.app.soundmanager.play(SoundType.CLICK);
+			}
+			
+		]]>
+	</fx:Script>	
+	<article:ArticleInGame id="article" width="40" height="40"/>
+</s:HGroup>

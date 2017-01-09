@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark" initialize="group1_initializeHandler(event)"
+		 xmlns:mx="library://ns.adobe.com/flex/mx" top="20" width="300" height="100%" xmlns:button="application.components.button.*" xmlns:money="application.gamecontainer.persinfobar.money.*">
+	
+	<fx:Script>
+		<![CDATA[
+			import application.GameApplication;
+			
+			import mx.events.FlexEvent;
+			
+			import utils.managers.ban.BanType;
+			import utils.user.UserRole;
+			public var userID:int;
+			
+
+			protected function ban5_clickHandler(event:MouseEvent):void
+			{
+				GameApplication.app.banmanager.ban(userID, BanType.MINUT5, cbip.selected);
+				dispatchEvent(new Event("closepopup"));
+			}
+
+
+			protected function ban15_clickHandler(event:MouseEvent):void
+			{
+				GameApplication.app.banmanager.ban(userID, BanType.MINUT15, cbip.selected);
+				dispatchEvent(new Event("closepopup"));
+			}
+
+
+			protected function ban30_clickHandler(event:MouseEvent):void
+			{
+				GameApplication.app.banmanager.ban(userID, BanType.MINUT30, cbip.selected);
+				dispatchEvent(new Event("closepopup"));
+			}
+
+
+			protected function ban60_clickHandler(event:MouseEvent):void
+			{
+				GameApplication.app.banmanager.ban(userID, BanType.HOUR1, cbip.selected);
+				dispatchEvent(new Event("closepopup"));
+			}
+
+
+			protected function ban1440_clickHandler(event:MouseEvent):void
+			{
+				GameApplication.app.banmanager.ban(userID, BanType.DAY1, cbip.selected);
+				dispatchEvent(new Event("closepopup"));
+			}
+
+
+			protected function group1_initializeHandler(event:FlexEvent):void
+			{		
+				var role:int = GameApplication.app.userinfomanager.myuser.role;
+				
+				if(UserRole.isAdministrator(role) || UserRole.isAdministratorMain(role)){
+					byipgr.visible = byipgr.includeInLayout = true;
+					banDayGroup.visible = banDayGroup.includeInLayout = true;
+					banWeekGroup.visible = banWeekGroup.includeInLayout = true;
+				}else{
+					byipgr.visible = byipgr.includeInLayout = false;
+					banDayGroup.visible = banDayGroup.includeInLayout = false;
+					banWeekGroup.visible = banWeekGroup.includeInLayout = false;
+				}			
+				
+				if(UserRole.isModerator(role) || UserRole.isAdministrator(role) || UserRole.isAdministratorMain(role)){
+					ruleLbl.visible = ruleLbl.includeInLayout = true;
+					ruleLbl.text = "Модераторам и администраторам баны на 5 и 15 минут бесплатны, баны на 30 минут и час, в 10 раз дешевле.";
+				}else{
+					ban30Group.visible = ban30Group.includeInLayout = false;
+					ban60Group.visible = ban60Group.includeInLayout = false;
+					banDayGroup.visible = banDayGroup.includeInLayout = false;
+					banWeekGroup.visible = banWeekGroup.includeInLayout = false;
+				}
+			}
+
+			protected function ban10080_clickHandler(event:MouseEvent):void
+			{
+				GameApplication.app.banmanager.ban(userID, BanType.WEEK, cbip.selected);
+				dispatchEvent(new Event("closepopup"));
+			}
+		]]>
+	</fx:Script>
+	
+	<s:VGroup width="100%" height="100%" horizontalAlign="center" gap="10">
+		<s:Label text="Забанить пользователя" width="100%" color="0xffffff" fontSize="16" fontWeight="normal" textAlign="center"/>
+		<s:HGroup verticalAlign="middle">
+			<button:GameButton id="ban5" label="на 5 минут" width="150" click="ban5_clickHandler(event)"/>
+			<money:Money id="mban5" money="100" width="70"/>
+		</s:HGroup>
+		<s:HGroup verticalAlign="middle">
+			<button:GameButton id="ban15" label="на 15 минут" width="150" click="ban15_clickHandler(event)"/>
+			<money:Money id="mban15" money="400" width="70"/>
+		</s:HGroup>
+		<s:HGroup id="ban30Group" verticalAlign="middle">
+			<button:GameButton id="ban30" label="на 30 минут" width="150" click="ban30_clickHandler(event)"/>
+			<money:Money id="mban30" money="800" width="70"/>
+		</s:HGroup>
+		<s:HGroup id="ban60Group" verticalAlign="middle">
+			<button:GameButton id="ban60" label="на 1 час" width="150" click="ban60_clickHandler(event)"/>
+			<money:Money id="mban60" money="2000" width="70"/>
+		</s:HGroup>
+		<s:HGroup id="banDayGroup" verticalAlign="middle">
+			<button:GameButton id="ban1440" label="на 1 день" width="150" click="ban1440_clickHandler(event)"/>
+			<money:Money id="mban1440" money="25000" width="70"/>
+		</s:HGroup>
+		<s:HGroup id="banWeekGroup" verticalAlign="middle">
+			<button:GameButton id="ban10080" label="на 1 неделю" width="150" click="ban10080_clickHandler(event)"/>
+			<money:Money id="mban10080" money="200000" width="70"/>
+		</s:HGroup>
+		<s:HGroup id="byipgr" verticalAlign="middle">
+			<s:CheckBox id="cbip"/>
+			<s:Label text="бан по ip" color="0xffffff" fontSize="12" fontWeight="normal" textAlign="left"/>
+		</s:HGroup>
+		<s:Label id="ruleLbl" visible="false" includeInLayout="false" textAlign="left" width="100%" color="0xFFFFCC" fontSize="10"/>
+	</s:VGroup>
+</s:Group>

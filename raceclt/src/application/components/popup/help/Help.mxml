@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark" initialize="onInit(event)"
+		 xmlns:mx="library://ns.adobe.com/flex/mx" top="20" width="495" height="400" xmlns:help="application.components.popup.help.*">
+	<fx:Script>
+		<![CDATA[
+			import application.gamecontainer.scene.catalog.bar.tab.CatalogTabEvent;
+			
+			import mx.events.FlexEvent;
+			
+			import spark.utils.TextFlowUtil;
+			
+			import utils.shop.CategoryType;
+			
+			public var selectCategory:int;
+
+			protected function onInit(event:FlexEvent):void
+			{	
+				if(selectCategory == CategoryType.SETTINGS){
+					helpbar.showGroups(3);
+				}else{
+					helpbar.showGroups(0);helpbar.showGroups();
+				}
+				helpbar.addEventListener(CatalogTabEvent.SELECTED, onSelectCategory);
+				helpbar.addEventListener(CatalogTabEvent.UNSELECTED, onUnSelectCategory);
+				
+				updateContentByCategory(selectCategory);
+			}
+			
+			private function onUnSelectCategory(e:CatalogTabEvent):void{
+				contentGr.removeAllElements()
+			}
+			
+			private function onSelectCategory(e:CatalogTabEvent):void{
+				updateContentByCategory(e.tab.category.id);				
+			}
+			
+			private function updateContentByCategory(category:int):void{
+				if(category == CategoryType.GAME_RULE){
+					contentGr.addElement(new GameRule());
+				}else if(category == CategoryType.CHAT_RULE){
+					contentGr.addElement(new ChatRule());
+				}else if(category == CategoryType.POSTS){
+					contentGr.addElement(new PostsContent());
+				}else if(category == CategoryType.SETTINGS){
+					contentGr.addElement(new Settings());
+				}
+			}
+
+		]]>
+	</fx:Script>
+	
+	<s:VGroup width="100%" height="100%">
+		<help:HelpBar id="helpbar" height="25" gap="0" width="100%"/>
+		<s:Group id="contentGr" width="100%" height="100%"/>
+	</s:VGroup>
+</s:Group>

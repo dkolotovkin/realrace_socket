@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark" initialize="onInit(event)"
+		 xmlns:mx="library://ns.adobe.com/flex/mx" top="35" width="400" height="200" xmlns:help="application.components.popup.help.*" xmlns:repairAndBrush="application.components.popup.repairAndBrush.*">
+	<fx:Script>
+		<![CDATA[
+			import application.gamecontainer.scene.catalog.bar.tab.CatalogTabEvent;
+			
+			import mx.events.FlexEvent;
+			
+			import spark.utils.TextFlowUtil;
+			
+			import utils.shop.CategoryType;
+			
+			protected function onInit(event:FlexEvent):void
+			{
+				tabBar.showGroups();
+				tabBar.addEventListener(CatalogTabEvent.SELECTED, onSelectCategory);
+				tabBar.addEventListener(CatalogTabEvent.UNSELECTED, onUnSelectCategory);
+				
+				updateContentByCategory(CategoryType.REPAIR_CAR);
+			}
+			
+			private function onUnSelectCategory(e:CatalogTabEvent):void{
+				contentGr.removeAllElements()
+			}
+			
+			private function onSelectCategory(e:CatalogTabEvent):void{
+				updateContentByCategory(e.tab.category.id);				
+			}
+			
+			private function updateContentByCategory(category:int):void{
+				if(category == CategoryType.REPAIR_CAR){
+					contentGr.addElement(new RepairContent());
+				}else if(category == CategoryType.BRUSH_CAR){
+					contentGr.addElement(new BrushContent());
+				}
+			}
+			
+		]]>
+	</fx:Script>
+	
+	<s:VGroup width="100%" height="100%">
+		<repairAndBrush:RepairAndBrushTabBar id="tabBar" height="25" gap="0" width="100%"/>
+		<s:Group id="contentGr" width="100%" height="100%"/>
+	</s:VGroup>
+</s:Group>

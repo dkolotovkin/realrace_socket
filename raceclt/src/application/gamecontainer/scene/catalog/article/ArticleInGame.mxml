@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009"
+		 xmlns:s="library://ns.adobe.com/flex/spark"
+		 xmlns:mx="library://ns.adobe.com/flex/mx" width="70" height="70" xmlns:money="application.gamecontainer.persinfobar.money.*">
+	<fx:Script>
+		<![CDATA[
+			import utils.models.item.Item;			
+			private var _mc:MovieClip;
+			[Bindable]
+			public var item:Item;
+			[Bindable]
+			private var _price:int;
+			
+			public function init(item:Item, price:int):void{
+				if(_mc && moviegr.contains(_mc)){
+					moviegr.removeChild(_mc);
+				}				
+				this.item = item;
+				_price = price;
+				
+				var classMovie:Class = LibraryMovieClass.getClassByItemPrototypeID(item.prototypeid);				
+				_mc = new classMovie();
+				moviegr.addChild(_mc);				
+				
+				var rect:Rectangle = _mc.getBounds(_mc);
+				var otnW:Number = moviegr.width / rect.width;
+				var otnH:Number = moviegr.height / rect.height;
+				var k:Number = 1;
+				if (otnW > otnH) k = otnH else k = otnW;
+				
+				_mc.width *= k;
+				_mc.height *= k;
+				
+				_mc.x = Math.round(-rect.x * k + (moviegr.width - _mc.width) / 2);
+				_mc.y = Math.round(-rect.y * k + (moviegr.height - _mc.height) / 2);
+			}
+		]]>
+	</fx:Script>
+	
+	<s:states>
+		<s:State name="normal"/>
+		<s:State name="over"/>
+		<s:State name="selected"/>
+	</s:states>	
+	
+	<s:Rect includeIn="normal" width="100%" height="100%" radiusX="8" radiusY="8">
+		<s:stroke>
+			<s:SolidColorStroke color="0xffffff" pixelHinting="true"/>
+		</s:stroke>
+		<s:fill>
+			<s:SolidColor color="0xffffff" alpha=".1"/>
+		</s:fill>
+	</s:Rect>
+	
+	<s:Rect includeIn="over" width="100%" height="100%" radiusX="8" radiusY="8">
+		<s:stroke>
+			<s:SolidColorStroke color="0xff9900" pixelHinting="true"/>
+		</s:stroke>
+		<s:fill>
+			<s:SolidColor color="0xffffff" alpha=".2"/>
+		</s:fill>
+	</s:Rect>
+	
+	<s:Rect includeIn="selected" width="100%" height="100%" radiusX="8" radiusY="8">
+		<s:stroke>
+			<s:SolidColorStroke color="0xff9900" weight="2" pixelHinting="true"/>
+		</s:stroke>
+		<s:fill>
+			<s:SolidColor color="0xffffff" alpha=".1"/>
+		</s:fill>
+	</s:Rect>
+	<mx:UIComponent id="moviegr" width="60" height="60" left="5" right="5" top="5" bottom="5"/>
+	<!--<money:MoneySmall money="{_price}"/>-->
+</s:Group>

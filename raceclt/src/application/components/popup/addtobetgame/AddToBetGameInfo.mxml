@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark"
+		 xmlns:mx="library://ns.adobe.com/flex/mx" top="35" width="100%" height="100%" xmlns:button="application.components.button.*" xmlns:money="application.gamecontainer.persinfobar.money.*" xmlns:iconswf="application.components.iconswf.*">
+	<fx:Script>
+		<![CDATA[
+			import application.GameApplication;
+			
+			import mx.events.FlexEvent;
+			
+			public var roomID:int;
+			
+			protected function onContinue(event:MouseEvent):void
+			{	
+				var password:String = "";
+				if(pass.enabled && pass.text.length > 0){
+					password = pass.text;
+				}
+				GameApplication.app.gamemanager.addToBetGame(roomID, password);
+			}		
+			
+		]]>
+	</fx:Script>
+	<s:VGroup width="100%" height="100%">
+		<s:Label text="Для входа в заезд введите пароль:" width="300" color="0xFF9933" fontSize="14" fontWeight="normal"/>
+		<s:HGroup verticalAlign="middle" width="100%">
+			<s:TextInput id="pass" maxChars="25" width="100%" color="0xffffff" contentBackgroundColor="0x666666" focusAlpha="0" focusEnabled="false" borderColor="0x333333"/>
+		</s:HGroup>
+		<s:HGroup width="100%" verticalAlign="middle" horizontalAlign="left">			
+			<button:GameButton label="продолжить" click="onContinue(event)"/>
+		</s:HGroup>
+	</s:VGroup>
+</s:Group>

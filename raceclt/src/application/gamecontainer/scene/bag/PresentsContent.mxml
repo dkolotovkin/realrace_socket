@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" removedFromStage="group1_removedFromStageHandler(event)"
+		 xmlns:s="library://ns.adobe.com/flex/spark" creationComplete="group1_creationCompleteHandler(event)"
+		 xmlns:mx="library://ns.adobe.com/flex/mx" top="5" width="100%" height="100%" xmlns:button="application.components.button.*" xmlns:money="application.gamecontainer.persinfobar.money.*" xmlns:preloader="application.components.preloader.*">
+	
+	<fx:Script>
+		<![CDATA[
+			import application.GameApplication;
+			import application.gamecontainer.scene.catalog.article.catalog.CatalogArticleEvent;
+			
+			import mx.collections.ArrayCollection;
+			import mx.events.CollectionEvent;
+			import mx.events.FlexEvent;
+			
+			import utils.user.User;			
+			
+			protected function group1_creationCompleteHandler(event:FlexEvent):void
+			{			
+				GameApplication.app.models.userPresents.collection = new ArrayCollection();
+				GameApplication.app.models.userPresents.collection.addEventListener(CollectionEvent.COLLECTION_CHANGE, onChangeCollection, false, 0, true);
+				GameApplication.app.models.userPresents.getting = false;
+				GameApplication.app.models.userPresents.end = false;
+				
+				checkAndGet();
+			}
+			
+			private function onChangeCollection(e:*):void{
+				if(GameApplication.app.models.userPresents.collection.length > 0){
+					preloader.visible = preloader.includeInLayout = false;
+					fullgr.visible = fullgr.includeInLayout = false;
+					bodyList.visible = bodyList.includeInLayout = true;
+				}else{
+					preloader.visible = preloader.includeInLayout = false;
+					fullgr.visible = fullgr.includeInLayout = true;
+					bodyList.visible = bodyList.includeInLayout = false;
+				}
+			}
+			
+			private function checkAndGet():void{
+				if(!GameApplication.app.models.userPresents.getting && !GameApplication.app.models.userPresents.end){ 
+					GameApplication.app.models.userPresents.getting = true;
+					GameApplication.app.shopmanager.getUserPresents();
+				}
+			}
+			
+			protected function group1_removedFromStageHandler(event:Event):void
+			{
+				GameApplication.app.models.userPresents.collection.removeEventListener(CollectionEvent.COLLECTION_CHANGE, onChangeCollection);
+			}
+			
+			protected function bodyList_renderHandler(event:Event):void
+			{
+				if(bodyList.scroller.verticalScrollBar.value == bodyList.scroller.verticalScrollBar.maximum &&
+					bodyList.scroller.verticalScrollBar.value == 0 && GameApplication.app.models.userPresents.collection.length > 0){
+					checkAndGet();
+					return;
+				}
+				
+				if(bodyList.scroller.verticalScrollBar.value == bodyList.scroller.verticalScrollBar.maximum && bodyList.scroller.verticalScrollBar.value > 0){
+					checkAndGet();
+				}
+			}			
+		]]>
+	</fx:Script>
+	
+	<s:VGroup width="100%" height="100%">
+		<preloader:PreLoaderCircle id="preloader" text="Загрузка подарков..."/>
+		<s:List id="bodyList" includeInLayout="false" visible="false" height="100%" width="100%"
+				contentBackgroundAlpha="0" borderVisible="false" useVirtualLayout="true"
+				render="bodyList_renderHandler(event)"
+				itemRenderer="application.gamecontainer.scene.bag.article.BagArticleRenderer"
+				dataProvider="{GameApplication.app.models.userPresents.collection}">
+			<s:layout>
+				<s:TileLayout horizontalGap="20" verticalGap="20"/>
+			</s:layout>
+		</s:List>
+		<s:HGroup id="fullgr" width="100%" height="100%" horizontalAlign="center" verticalAlign="middle" includeInLayout="false" visible="false">
+			<s:Label fontSize="12" width="100%" textAlign="center" color="0xcccccc" text="У вас нет ни одного подарка..."/>
+		</s:HGroup>
+	</s:VGroup>
+</s:Group>

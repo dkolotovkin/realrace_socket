@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:VGroup xmlns:fx="http://ns.adobe.com/mxml/2009" horizontalAlign="center" implements="utils.selector.ISelected"
+				 xmlns:s="library://ns.adobe.com/flex/spark" buttonMode="true" rollOver="rollOver(event)" rollOut="rollOut(event)" click="onClick(event)"
+				 xmlns:mx="library://ns.adobe.com/flex/mx" xmlns:article="application.gamecontainer.scene.catalog.article.*" xmlns:money="application.gamecontainer.persinfobar.money.*">
+	<fx:Script>
+		<![CDATA[
+			import mx.events.FlexEvent;
+			
+			import utils.shop.CategoryType;
+			import utils.models.item.Item;
+			import utils.models.ItemPrototype;
+			private var _selected:Boolean = false;
+			private var _over:Boolean = false;
+			public var prototype:ItemPrototype;
+			
+			protected function onClick(event:MouseEvent):void{
+				selected = true;				
+			}
+			
+			protected function rollOver(event:MouseEvent):void{
+				_over = true;
+				updateState();
+			}
+			
+			
+			protected function rollOut(event:MouseEvent):void{
+				_over = false;
+				updateState();
+			}
+			
+			public function get selected ():Boolean {
+				return _selected;
+			}
+			
+			public function set selected (value:Boolean):void {
+				if (_selected != value){
+					_selected = value;
+					if (_selected){
+						dispatchEvent(new CatalogArticleEvent(CatalogArticleEvent.SELECTED, this));
+					}else{
+						dispatchEvent(new CatalogArticleEvent(CatalogArticleEvent.UNSELECTED, this));
+					}
+					updateState();
+				}	
+			}
+			
+			private function updateState ():void{
+				if (_selected) {
+					article.currentState = "selected";
+				}else{
+					if (_over){
+						article.currentState = "over";
+					}else{
+						article.currentState = "normal";
+					}
+				}
+			}
+
+			public function init(prototype:ItemPrototype):void{
+				this.prototype = prototype;				
+				article.init(Item.createFromItemPrototype(prototype));
+				
+				if(prototype.priceReal > 0){
+					moneyrealcomp.visible = moneyrealcomp.includeInLayout = true;
+					moneycomp.visible = moneycomp.includeInLayout = false;
+					moneyrealcomp.moneyReal = prototype.priceReal;
+				}else{
+					moneyrealcomp.visible = moneyrealcomp.includeInLayout = false;
+					moneycomp.visible = moneycomp.includeInLayout = true;
+					moneycomp.money = prototype.price;
+				}
+			}
+		]]>
+	</fx:Script>
+	
+	<article:Article id="article"/>
+	<money:Money id="moneycomp"/>
+	<money:MoneyReal id="moneyrealcomp"/>
+</s:VGroup>

@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark" initialize="group1_initializeHandler(event)"
+		 xmlns:mx="library://ns.adobe.com/flex/mx" width="100%" height="100%">
+	<s:layout>
+		<s:BasicLayout/>
+	</s:layout>
+	<fx:Script>
+		<![CDATA[
+			import application.GameApplication;
+			
+			import mx.events.FlexEvent;
+			
+			import utils.user.ClanUserRole;
+
+			protected function group1_initializeHandler(event:FlexEvent):void
+			{
+				if(GameApplication.app.userinfomanager.myuser.claninfo.clanid == GameApplication.app.models.currentClan.clanId &&
+					(GameApplication.app.userinfomanager.myuser.claninfo.clanrole == ClanUserRole.NO_ROLE ||
+						GameApplication.app.userinfomanager.myuser.claninfo.clanrole == ClanUserRole.ROLE1 || 
+						GameApplication.app.userinfomanager.myuser.claninfo.clanrole == ClanUserRole.ROLE2 ||
+						GameApplication.app.userinfomanager.myuser.claninfo.clanrole == ClanUserRole.ROLE3 || 
+						GameApplication.app.userinfomanager.myuser.claninfo.clanrole == ClanUserRole.ROLE4 ||
+						GameApplication.app.userinfomanager.myuser.claninfo.clanrole == ClanUserRole.ROLE5 || 
+						GameApplication.app.userinfomanager.myuser.claninfo.clanrole == ClanUserRole.OWNER)){
+					if(GameApplication.app.models.currentClan.clanAdvert && GameApplication.app.models.currentClan.clanAdvert.length){
+						lbl.text = GameApplication.app.models.currentClan.clanAdvert;
+					}else{
+						lbl.text = "Нет объявлений...";
+					}
+				}else{
+					lbl.text = "Информация недоступна...";
+				}
+			}
+
+		]]>
+	</fx:Script>
+	<s:HGroup width="100%" height="100%" horizontalAlign="center" verticalAlign="middle">
+		<s:Label fontSize="12" color="0xcccccc" id="lbl" width="100%" maxHeight="200" textAlign="center"/>
+	</s:HGroup>
+</s:Group>

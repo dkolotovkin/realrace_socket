@@ -1,0 +1,287 @@
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" implements="utils.interfaces.ISceneContent"
+		 xmlns:s="library://ns.adobe.com/flex/spark" width="100%" height="100%" initialize="onInit(event)"
+		 xmlns:mx="library://ns.adobe.com/flex/mx" xmlns:iconswf="application.components.iconswf.*" xmlns:catalog="application.gamecontainer.scene.catalog.*" xmlns:iteminfo="application.gamecontainer.scene.catalog.iteminfo.*" xmlns:bar="application.gamecontainer.scene.catalog.bar.*" xmlns:body="application.gamecontainer.scene.bag.body.*" xmlns:button="application.components.button.*" xmlns:top="application.gamecontainer.scene.top.*">
+	<fx:Script>
+		<![CDATA[
+			import application.GameApplication;
+			import application.components.useritem.OnlinePopularUserItem;
+			import application.gamecontainer.persinfobar.money.MoneyReal;
+			import application.gamecontainer.scene.catalog.bar.tab.CatalogTabEvent;
+			
+			import mx.events.FlexEvent;
+			
+			import spark.layouts.VerticalAlign;
+			
+			import utils.interfaces.ISceneContent;
+			import utils.protocol.ProtocolKeys;
+			import utils.protocol.ProtocolValues;
+			import utils.user.User;
+			
+			[Bindable]
+			private var noteText:String;
+			
+			protected function onInit(event:FlexEvent):void
+			{	
+				topbar.addEventListener(CatalogTabEvent.SELECTED, onSelectCategory);
+				topbar.addEventListener(CatalogTabEvent.UNSELECTED, onUnSelectCategory);
+				topbar.showGroups();
+			}		
+			
+			private function onUnSelectCategory(e:CatalogTabEvent):void{				
+				body.removeAllElements();
+			}
+			
+			private function onSelectCategory(e:CatalogTabEvent):void{
+				var time:Number;
+				var currenttime:Number = (new Date()).getTime();
+				var delta:Number;
+				var usersData:Object;
+				if (e.tab.category.id == TopCategoryType.EXPERIENCE){
+					noteText = "Внимание! Данные обновляются каждый час.";
+						
+					time = GameApplication.app.userinfomanager.cash["topuserstime"];
+					delta = (currenttime - time) / 1000;
+					if(time > 0){
+						usersData = GameApplication.app.userinfomanager.cash["topUsers"];
+						if(delta < 60 * 5 && usersData){
+							onGetTop(usersData);
+							return;
+						}
+					}
+					GameApplication.app.userinfomanager.cash["topuserstime"] = currenttime;
+					
+					GameApplication.app.callsmanager.call(ProtocolValues.GET_TOP_USERS, onGetTopUsers);
+				}else if(e.tab.category.id == TopCategoryType.POPULAR){
+					noteText = "Внимание! Данные обновляются каждый час.";
+						
+					time = GameApplication.app.userinfomanager.cash["toppopularuserstime"];
+					delta = (currenttime - time) / 1000;
+					if(time > 0){
+						usersData = GameApplication.app.userinfomanager.cash["topPopularUsers"];
+						if(delta < 60 * 5 && usersData){
+							onGetTop(usersData);
+							return;
+						}
+					}
+					GameApplication.app.userinfomanager.cash["toppopularuserstime"] = currenttime;
+					
+					GameApplication.app.callsmanager.call(ProtocolValues.GET_TOP_POPULAR_USERS, onGetTopPopularUsers);
+				}else if(e.tab.category.id == TopCategoryType.EXPERIENCE_HOUR){	
+					noteText = "Внимание! Данные обновляются каждые 5 минут.";
+					
+					time = GameApplication.app.userinfomanager.cash["tophouruserstime"];
+					delta = (currenttime - time) / 1000;
+					if(time > 0){
+						usersData = GameApplication.app.userinfomanager.cash["topHourUsers"];
+						if(delta < 60 * 5 && usersData){
+							onGetTopHour(usersData);
+							return;
+						}
+					}
+					GameApplication.app.userinfomanager.cash["tophouruserstime"] = currenttime;
+					
+					GameApplication.app.callsmanager.call(ProtocolValues.GET_TOP_HOUR_USERS, onGetTopHour);
+				}else if(e.tab.category.id == TopCategoryType.EXPERIENCE_DAY){	
+					noteText = "Внимание! Данные обновляются каждые 5 минут.";
+					
+					time = GameApplication.app.userinfomanager.cash["topdayuserstime"];
+					delta = (currenttime - time) / 1000;
+					if(time > 0){
+						usersData = GameApplication.app.userinfomanager.cash["topDayUsers"];
+						if(delta < 60 * 5 && usersData){
+							onGetTopDay(usersData);
+							return;
+						}
+					}
+					GameApplication.app.userinfomanager.cash["topdayuserstime"] = currenttime;
+					
+					GameApplication.app.callsmanager.call(ProtocolValues.GET_TOP_DAY_USERS, onGetTopDay);
+				}
+			}
+			
+			private function onGetTopUsers(obj:Object):void{
+				GameApplication.app.userinfomanager.cash["topUsers"] = obj;
+				onGetTop(obj);
+			}
+			
+			private function onGetTopPopularUsers(obj:Object):void{
+				GameApplication.app.userinfomanager.cash["topPopularUsers"] = obj;
+				onGetTop(obj);
+			}
+			
+			private function onGetTop(obj:Object):void{	
+				var list:Array = obj[ProtocolKeys.USERS];
+				for(var i:int = 0; i < list.length; i++){
+					var useritem:OnlinePopularUserItem = new OnlinePopularUserItem();					
+					useritem.user = User.createFromObject(list[i]);	
+					useritem.title.maxWidth = 120;
+					useritem.maxWidth = 300;
+					useritem.buttonMode = true;
+					
+					var hg:HGroup = new HGroup();
+					hg.verticalAlign = VerticalAlign.MIDDLE;
+					hg.gap = 3;
+					var l:Label = new Label();
+					l.text = (i + 1) + ".";
+					l.setStyle("color", 0xffffff);
+					hg.addElement(l);
+					hg.addElement(useritem);
+					
+					body.addElement(hg);
+				}
+			}
+			
+			private function onGetTopHour(obj:Object):void{
+				GameApplication.app.userinfomanager.cash["topHourUsers"] = obj;
+				
+				var list:Array = obj[ProtocolKeys.USERS];
+				for(var i:int = 0; i < list.length; i++){
+					var useritem:OnlinePopularUserItem = new OnlinePopularUserItem();					
+					useritem.user = User.createFromObject(list[i]);
+					useritem.title.maxWidth = 120;
+					useritem.width = 250;
+					useritem.buttonMode = true;
+					
+					var hg:HGroup = new HGroup();
+					hg.verticalAlign = VerticalAlign.MIDDLE;
+					hg.gap = 0;
+					var l:Label = new Label();
+					l.width = 20;
+					l.text = (i + 1) + ".";
+					l.setStyle("color", 0xffffff);					
+					
+					var exp:Label = new Label();
+					exp.width = 100;
+					exp.text = "+ " + list[i][ProtocolKeys.EXP_HOUR];
+					exp.setStyle("color", 0xFF9933);					
+					
+					hg.addElement(l);
+					hg.addElement(useritem);
+					hg.addElement(exp);
+					
+					var bonus:MoneyReal;
+					if(i + 1 == 1){
+						bonus = new MoneyReal();
+						bonus.height = 10;
+						bonus.moneyReal = GameApplication.app.config.exphourprizes[0];
+						hg.addElement(bonus);
+					}else if(i + 1 == 2){
+						bonus = new MoneyReal();
+						bonus.height = 10;
+						bonus.moneyReal = GameApplication.app.config.exphourprizes[1];
+						hg.addElement(bonus);
+					}else if(i + 1 == 3){
+						bonus = new MoneyReal();
+						bonus.height = 10;
+						bonus.moneyReal = GameApplication.app.config.exphourprizes[2];
+						hg.addElement(bonus);
+					}else if(i + 1 == 4){
+						bonus = new MoneyReal();
+						bonus.height = 10;
+						bonus.moneyReal = GameApplication.app.config.exphourprizes[3];
+						hg.addElement(bonus);
+					}else if(i + 1 == 5){
+						bonus = new MoneyReal();
+						bonus.height = 10;
+						bonus.moneyReal = GameApplication.app.config.exphourprizes[4];
+						hg.addElement(bonus);
+					}
+					
+					body.addElement(hg);
+				}
+			}
+			
+			private function onGetTopDay(obj:Object):void{
+				GameApplication.app.userinfomanager.cash["topDayUsers"] = obj;
+				var list:Array = obj[ProtocolKeys.USERS];
+				for(var i:int = 0; i < list.length; i++){
+					var useritem:OnlinePopularUserItem = new OnlinePopularUserItem();					
+					useritem.user = User.createFromObject(list[i]);					
+					useritem.title.maxWidth = 120;
+					useritem.width = 250;
+					useritem.buttonMode = true;
+					
+					var hg:HGroup = new HGroup();
+					hg.verticalAlign = VerticalAlign.MIDDLE;
+					hg.gap = 0;
+					var l:Label = new Label();
+					l.width = 20;
+					l.text = (i + 1) + ".";
+					l.setStyle("color", 0xffffff);					
+					
+					var exp:Label = new Label();
+					exp.width = 100;
+					exp.text = "+ " + list[i][ProtocolKeys.EXP_DAY];
+					exp.setStyle("color", 0xFF9933);					
+					
+					hg.addElement(l);
+					hg.addElement(useritem);
+					hg.addElement(exp);
+					
+					var bonus:MoneyReal;
+					if(i + 1 == 1){
+						bonus = new MoneyReal();
+						bonus.height = 10;
+						bonus.moneyReal = GameApplication.app.config.expdayprizes[0];
+						hg.addElement(bonus);
+					}else if(i + 1 == 2){
+						bonus = new MoneyReal();
+						bonus.height = 10;
+						bonus.moneyReal = GameApplication.app.config.expdayprizes[1];
+						hg.addElement(bonus);
+					}else if(i + 1 == 3){
+						bonus = new MoneyReal();
+						bonus.height = 10;
+						bonus.moneyReal = GameApplication.app.config.expdayprizes[2];
+						hg.addElement(bonus);
+					}else if(i + 1 == 4){
+						bonus = new MoneyReal();
+						bonus.height = 10;
+						bonus.moneyReal = GameApplication.app.config.expdayprizes[3];
+						hg.addElement(bonus);
+					}else if(i + 1 == 5){
+						bonus = new MoneyReal();
+						bonus.height = 10;
+						bonus.moneyReal = GameApplication.app.config.expdayprizes[4];
+						hg.addElement(bonus);
+					}
+					
+					body.addElement(hg);
+				}
+			}
+			
+			private function onGetTopError(e:Object):void{
+				GameApplication.app.popuper.showInfoPopUp("Не удалось получить список пользователей");
+			}			
+			
+			protected function onBack(event:MouseEvent):void{
+				GameApplication.app.navigator.goHome();
+			}
+			
+			public function onHide():void{				
+			}
+		]]>
+	</fx:Script>
+	
+	<s:Rect width="100%" height="100%">
+		<s:fill>
+			<s:SolidColor color="0x0" alpha=".8"/>
+		</s:fill>
+		<s:stroke>
+			<s:SolidColorStroke color="0xB7B7B7" weight="2"/>
+		</s:stroke>
+	</s:Rect>
+	<s:Label width="100%" top="8" textAlign="center" text="Топ игроков" fontSize="30" color="0xFFFFFF" fontWeight="bold" fontStyle="italic"/>
+	
+	<s:VGroup width="100%" height="100%" gap="0" paddingLeft="10" paddingRight="10" paddingTop="40" paddingBottom="10" horizontalAlign="center">		
+		<top:TopBar id="topbar" gap="0" width="620"/>
+		<mx:Spacer height="5"/>
+		<s:TileGroup id="body" orientation="columns" height="100%" width="620" verticalGap="5"/>
+		<mx:Spacer height="30"/>
+		<s:HGroup width="100%" verticalAlign="bottom">
+			<s:Label text="{noteText}" height="13" fontSize="10" color="0xFFFFCC"/>
+			<mx:Spacer width="100%"/>
+			<button:GameButton id="back" label="назад" click="onBack(event)"/>
+		</s:HGroup>
+	</s:VGroup>
+</s:Group>

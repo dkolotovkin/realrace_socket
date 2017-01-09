@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark" initialize="group1_initializeHandler(event)"
+		 xmlns:mx="library://ns.adobe.com/flex/mx" top="10" width="300" height="100%" xmlns:button="application.components.button.*" xmlns:money="application.gamecontainer.persinfobar.money.*" xmlns:buymoney="application.components.popup.buymoney.*" xmlns:iconswf="application.components.iconswf.*">
+	
+	<fx:Script>
+		<![CDATA[
+			import application.GameApplication;
+			
+			import mx.events.FlexEvent;
+			[Bindable]
+			public var text:String = "";
+			public var closeFunction:Function;
+			
+			protected function group1_initializeHandler(event:FlexEvent):void
+			{
+				if(GameApplication.app.models.options.action > 0){
+					actionGroup.visible = true;
+					actionLbl.text = "+ " + GameApplication.app.models.options.action + "%";
+					
+					money1.actionMoneyReal = Math.floor(money1.moneyReal * (GameApplication.app.models.options.action / 100));
+					money2.actionMoneyReal = Math.floor(money2.moneyReal * (GameApplication.app.models.options.action / 100));
+					money3.actionMoneyReal = Math.floor(money3.moneyReal * (GameApplication.app.models.options.action / 100));
+					money4.actionMoneyReal = Math.floor(money4.moneyReal * (GameApplication.app.models.options.action / 100));
+					money5.actionMoneyReal = Math.floor(money5.moneyReal * (GameApplication.app.models.options.action / 100));
+					money6.actionMoneyReal = Math.floor(money6.moneyReal * (GameApplication.app.models.options.action / 100));
+				}else{
+					actionGroup.visible = false;
+				}
+			}			
+
+			protected function buy5_clickHandler(event:MouseEvent):void
+			{
+				GameApplication.app.apimanager.buyMoney(5);
+				closeFunction && closeFunction();
+			}
+
+			protected function buy15_clickHandler(event:MouseEvent):void
+			{
+				GameApplication.app.apimanager.buyMoney(15);
+				closeFunction && closeFunction();
+			}
+
+			protected function buy30_clickHandler(event:MouseEvent):void
+			{
+				GameApplication.app.apimanager.buyMoney(30);
+				closeFunction && closeFunction();
+			}
+
+			protected function buy100_clickHandler(event:MouseEvent):void
+			{
+				GameApplication.app.apimanager.buyMoney(100);
+				closeFunction && closeFunction();
+			}
+
+			protected function buy200_clickHandler(event:MouseEvent):void
+			{
+				GameApplication.app.apimanager.buyMoney(200);
+				closeFunction && closeFunction();
+			}
+
+			protected function buy1_clickHandler(event:MouseEvent):void
+			{
+				GameApplication.app.apimanager.buyMoney(1);
+				closeFunction && closeFunction();
+			}
+
+		]]>
+	</fx:Script>
+	
+	<s:Group id="actionGroup" width="80" height="60" left="-40" top="-50" toolTip="Акция на покупку реалов" visible="false">
+		<iconswf:IconMXML iconClass="{Action}"/>
+		<s:Label id="actionLbl" top="32" width="100%" textAlign="center" fontWeight="bold" color="0xff3300" fontSize="20"/>
+	</s:Group>
+	
+	<s:VGroup width="100%" height="100%" horizontalAlign="center" gap="10">
+		<s:Label text="Купить валюту" width="100%" color="0xffffff" fontSize="16" fontWeight="normal" textAlign="center"/>
+		<s:VGroup horizontalAlign="right" gap="10">
+			<s:HGroup verticalAlign="middle">
+				<money:MoneyRealWithAction moneyReal="40" id="money1"/>
+				<button:GameButton id="buy1" label="за 1 голос" width="150" click="buy1_clickHandler(event)"/>
+			</s:HGroup>
+			<s:HGroup verticalAlign="middle">
+				<money:MoneyRealWithAction moneyReal="250" id="money2"/>
+				<button:GameButton id="buy5" label="за 5 голосов" width="150" click="buy5_clickHandler(event)"/>
+			</s:HGroup>
+			<s:HGroup verticalAlign="middle">
+				<money:MoneyRealWithAction moneyReal="850" id="money3"/>
+				<button:GameButton id="buy15" label="за 15 голосов" width="150" click="buy15_clickHandler(event)"/>
+			</s:HGroup>
+			<s:HGroup verticalAlign="middle">
+				<money:MoneyRealWithAction moneyReal="2000" id="money4"/>
+				<button:GameButton id="buy30" label="за 30 голосов" width="150" click="buy30_clickHandler(event)"/>
+			</s:HGroup>
+			<s:HGroup verticalAlign="middle">
+				<money:MoneyRealWithAction moneyReal="7000" id="money5"/>
+				<button:GameButton id="buy100" label="за 100 голосов" width="150" click="buy100_clickHandler(event)"/>
+			</s:HGroup>
+			<s:HGroup verticalAlign="middle">
+				<money:MoneyRealWithAction moneyReal="15000" id="money6"/>
+				<button:GameButton id="buy200" label="за 200 голосов" width="150" click="buy200_clickHandler(event)"/>
+			</s:HGroup>
+		</s:VGroup>
+		<buymoney:ExchangeComponent/>
+		<s:Label text="* на ваш счет деньги поступят в течение 30 секунд после пополнения" width="100%" color="0xffffff" fontSize="10" fontWeight="normal" textAlign="left"/>
+	</s:VGroup>
+</s:Group>

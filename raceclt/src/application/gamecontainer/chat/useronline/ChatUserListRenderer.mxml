@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:DataRenderer xmlns:fx="http://ns.adobe.com/mxml/2009" rollOver="rollOver(event)" rollOut="rollOut(event)" click="click(event)"
+				xmlns:s="library://ns.adobe.com/flex/spark" buttonMode="true"
+				xmlns:mx="library://ns.adobe.com/flex/mx" width="100%" xmlns:iconswf="application.components.iconswf.*">
+	<fx:Script>
+		<![CDATA[
+			import application.GameApplication;
+			import application.gamecontainer.chat.actionmenu.chatuser.ActionMenuChatUser;
+			
+			import utils.sound.SoundType;
+			import utils.user.Sex;
+			import utils.user.User;
+			import utils.user.UserEvent;
+			import utils.user.UserRole;
+			
+			private var _over:Boolean = false;
+			private var _selected:Boolean;
+			
+			private var user:User
+			
+			override public function set data(value:Object):void
+			{			
+				super.data = value;
+				
+				if(user){
+					user.removeEventListener(UserEvent.UPDATE, onUpdateUser);
+				}
+				user = value as User;				
+				
+				if(user){
+					user.addEventListener(UserEvent.UPDATE, onUpdateUser, false, 0, true);			
+					username.text = user.title;
+					userlevel.text = String("[" + user.level + "]");
+					
+					updateIcon();
+				}
+				updateState();
+			}
+			
+			private function onUpdateUser(e:UserEvent):void{			
+				updateIcon();			
+				updateState();
+			}
+			
+			private function updateIcon():void{
+				if(this.data){
+					if (user.sex == Sex.MALE){
+						icon.icon.gotoAndStop(1);
+					}else{
+						icon.icon.gotoAndStop(2);
+					}
+				}
+			}
+
+			protected function rollOver(event:MouseEvent):void
+			{				
+				_over = true;
+				updateState();
+			}
+
+			protected function rollOut(event:MouseEvent):void{
+				_over = false;
+				updateState ();
+			}
+
+			protected function click(event:MouseEvent):void{
+				if(GameApplication.app.config.playmode != 1 && user.id > 0 && user.id != GameApplication.app.userinfomanager.myuser.id){
+					GameApplication.app.actionShowerMenu.showMenu(new ActionMenuChatUser(user));					
+				}
+				
+				GameApplication.app.soundmanager.play(SoundType.CLICK);
+			}
+			
+			private function updateState ():void {
+				if (this.data){
+					if (_selected){
+						username.setStyle("color", "0x00FF00");
+					}else if (_over){
+						username.setStyle("color", "0xCCFF66");
+					}else{
+						if (UserRole.isModerator(user.role)){
+							username.setStyle("color", "0x00FFFF");
+						}else if (UserRole.isAdministrator(user.role) || UserRole.isAdministratorMain(user.role)){
+							username.setStyle("color", "0xFD92FE");
+						}else{
+							username.setStyle("color", "0x00FF00");
+						}						
+					}					
+				}
+			}
+			
+			public function get selected ():Boolean {
+				return _selected;
+			}
+			
+			public function set selected (value:Boolean):void {
+				if (_selected != value){
+					_selected = value;
+					updateState();
+				}
+			}
+		]]>
+	</fx:Script>
+	
+	<s:HGroup width="110" height="20" gap="0" verticalAlign="middle">
+		<s:Group>
+			<iconswf:IconMXML id="icon" iconClass="{IconUserOnline}" height="5" top="-5"/>			
+		</s:Group>
+		<mx:Spacer width="3"/>
+		<s:Label id="username" color="0x00FF00" fontSize="12" height="15"/>
+		<mx:Spacer width="2"/>
+		<s:Label id="userlevel" color="0x00FFFF" fontSize="14" height="15"/>
+	</s:HGroup>
+</s:DataRenderer>

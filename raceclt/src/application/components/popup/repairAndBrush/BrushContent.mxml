@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark"
+		 xmlns:mx="library://ns.adobe.com/flex/mx" top="10" width="100%" height="100%" xmlns:button="application.components.button.*" xmlns:money="application.gamecontainer.persinfobar.money.*" xmlns:iconswf="application.components.iconswf.*">
+	<fx:Script>
+		<![CDATA[			
+			import application.GameApplication;
+			import application.gamecontainer.scene.catalog.article.LibraryMovieClass;
+			
+			import mx.events.ColorPickerEvent;
+			import mx.events.FlexEvent;
+			
+			import utils.brush.BrushManager;
+			
+			private var carMc:MovieClip;
+			
+			override protected function createChildren():void{
+				super.createChildren();
+				
+				if(GameApplication.app.userinfomanager.myuser.activeCar){
+					var carMcClass:Class = LibraryMovieClass.getCarClassByCarPrototypeID(GameApplication.app.userinfomanager.myuser.activeCar.prototype.id);
+					carMc = new carMcClass();
+					carMc.scaleX = carMc.scaleY = 0.6;
+					carUI.addChild(carMc);
+					
+					carUI.width = carMc.width;
+					carUI.height = carMc.height;
+					
+					colorPicker.selectedColor = GameApplication.app.userinfomanager.myuser.activeCar.color;
+					BrushManager.brush(GameApplication.app.userinfomanager.myuser.activeCar.color, carMc["mc"]);
+					
+					price.moneyReal = 100 * GameApplication.app.userinfomanager.myuser.activeCar.prototype.carClass;
+				}
+			}
+			
+			protected function brushBtn_clickHandler(event:MouseEvent):void
+			{
+				if(GameApplication.app.userinfomanager.myuser.activeCar){
+					if(colorPicker.selectedColor != GameApplication.app.userinfomanager.myuser.activeCar.color){
+						GameApplication.app.shopmanager.buyCarColor(GameApplication.app.userinfomanager.myuser.activeCar.id, colorPicker.selectedColor);
+						GameApplication.app.popuper.hidePopUp();
+					}else{
+						GameApplication.app.popuper.showInfoPopUp("Вы не выбрали цвет");
+					}
+				}
+			}
+			
+			protected function colorPicker_changeHandler(event:ColorPickerEvent):void
+			{
+				BrushManager.brush(colorPicker.selectedColor, carMc["mc"]);
+			}
+			
+		]]>
+	</fx:Script>
+	<s:VGroup width="100%" height="100%" horizontalAlign="center">
+		<s:HGroup verticalAlign="middle" width="100%">
+			<s:Label text="Выберите цвет:" color="0xFF9933" fontSize="14" fontWeight="normal"/>
+			<mx:ColorPicker id="colorPicker" focusAlpha="0" change="colorPicker_changeHandler(event)"/>
+		</s:HGroup>
+		<mx:UIComponent id="carUI"/>
+		<s:HGroup width="100%" verticalAlign="middle">
+			<s:Label text="Цена:" color="0xffffff" paddingTop="5" fontSize="14" fontWeight="normal"/>
+			<money:MoneyReal id="price"/>
+			<mx:Spacer width="100%"/>
+			<button:GameButton id="brushBtn" label="покрасить" click="brushBtn_clickHandler(event)"/>
+		</s:HGroup>
+	</s:VGroup>
+</s:Group>

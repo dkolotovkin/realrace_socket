@@ -1,0 +1,240 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" implements="utils.interfaces.ISceneContent"
+		 xmlns:s="library://ns.adobe.com/flex/spark" initialize="group1_initializeHandler(event)"
+		 xmlns:mx="library://ns.adobe.com/flex/mx" width="100%" height="380" xmlns:local="*" xmlns:iconswf="application.components.iconswf.*" xmlns:buttonswf="application.components.buttonswf.*">
+	
+	<fx:Script>
+		<![CDATA[
+			import application.GameApplication;
+			import application.components.popup.gamebet.PopUpGameBet;
+			import application.components.popup.help.tutorial.map.PopUpTutorialMap;
+			
+			import mx.events.FlexEvent;
+			
+			import utils.models.Models;
+			import utils.models.car.CarModel;
+			import utils.models.map.DistrictModel;
+			import utils.selector.Selector;
+			import utils.selector.SelectorEvent;
+			import utils.sound.SoundType;
+			
+			private var districts:Object;
+			private var activeCar:CarModel;
+			
+			private var selector:Selector;
+			
+			public function onHide():void{
+			}
+
+			protected function group1_initializeHandler(event:FlexEvent):void
+			{
+				selector = new Selector();
+				selector.addEventListener(SelectorEvent.SELECTED, onSelected, false, 0, true);
+				selector.addEventListener(SelectorEvent.UNSELECTED, onUnselected, false, 0, true);
+				
+				districts = new Object();
+				
+				var district:MapDistrict;
+				
+				district = new MapDistrict();
+				district.district = GameApplication.app.models.map.districts[DistrictModel.DISTRICT1];
+				district.x = 175;
+				district.y = 45;
+				district.addEventListener(MouseEvent.ROLL_OVER, onDistrictRollOver, false, 0, true);
+				district.addEventListener(MouseEvent.ROLL_OUT, onDistrictRollOut, false, 0, true);
+				district.addEventListener(MouseEvent.CLICK, onDistrictClick, false, 0, true);
+				districsUI.addChild(district);
+				districts[district.district.id] = district;				
+				
+				district = new MapDistrict();
+				district.district = GameApplication.app.models.map.districts[DistrictModel.DISTRICT3];
+				district.x = 140;
+				district.y = 160;
+				district.addEventListener(MouseEvent.ROLL_OVER, onDistrictRollOver, false, 0, true);
+				district.addEventListener(MouseEvent.ROLL_OUT, onDistrictRollOut, false, 0, true);
+				district.addEventListener(MouseEvent.CLICK, onDistrictClick, false, 0, true);
+				district.mouseEnabled = district.mouseChildren = false;
+				districsUI.addChild(district);
+				districts[district.district.id] = district;
+				
+				var lock3:IconMXML = new IconMXML();
+				lock3.iconClass = Lock;
+				lock3.x = district.x + 40;
+				lock3.y = district.y + 55;
+				districsUI.addChild(lock3);
+				
+				district = new MapDistrict();
+				district.district = GameApplication.app.models.map.districts[DistrictModel.DISTRICT4];
+				district.x = 485;
+				district.y = 118;
+				district.addEventListener(MouseEvent.ROLL_OVER, onDistrictRollOver, false, 0, true);
+				district.addEventListener(MouseEvent.ROLL_OUT, onDistrictRollOut, false, 0, true);
+				district.addEventListener(MouseEvent.CLICK, onDistrictClick, false, 0, true);
+				districsUI.addChild(district);
+				districts[district.district.id] = district;
+				
+				district = new MapDistrict();
+				district.district = GameApplication.app.models.map.districts[DistrictModel.DISTRICT5];
+				district.x = 290;
+				district.y = 90;
+				district.addEventListener(MouseEvent.ROLL_OVER, onDistrictRollOver, false, 0, true);
+				district.addEventListener(MouseEvent.ROLL_OUT, onDistrictRollOut, false, 0, true);
+				district.addEventListener(MouseEvent.CLICK, onBetDistrictClick, false, 0, true);
+				districsUI.addChild(district);
+				districts[district.district.id] = district;
+				
+				district = new MapDistrict();
+				district.district = GameApplication.app.models.map.districts[DistrictModel.DISTRICT2];
+				district.x = 460;
+				district.y = 65;
+				district.addEventListener(MouseEvent.ROLL_OVER, onDistrictRollOver, false, 0, true);
+				district.addEventListener(MouseEvent.ROLL_OUT, onDistrictRollOut, false, 0, true);
+				district.addEventListener(MouseEvent.CLICK, onDistrictClick, false, 0, true);
+				districsUI.addChild(district);
+				districts[district.district.id] = district;
+				
+				activeCar = GameApplication.app.userinfomanager.myuser.activeCar;
+				if(activeCar){
+					var currentDistrictID:int;
+					if(GameApplication.app.so.data["currentDistrictID"] == undefined || GameApplication.app.so.data["currentDistrictID"] == "undefined"){
+						currentDistrictID = DistrictModel.DISTRICT4;
+					}else{
+						currentDistrictID = int(GameApplication.app.so.data["currentDistrictID"]);
+					}
+					if(currentDistrictID == DistrictModel.DISTRICT1 && activeCar.prototype.carClass != 1 && activeCar.prototype.carClass != 2){
+						currentDistrictID = DistrictModel.DISTRICT4;
+					}
+					if(currentDistrictID == DistrictModel.DISTRICT2 && activeCar.prototype.carClass != 3 && activeCar.prototype.carClass != 4){
+						currentDistrictID = DistrictModel.DISTRICT4;
+					}
+					selector.selected(districts[currentDistrictID]);
+				}
+			}
+			
+			private function onUnselected(event : SelectorEvent) : void {
+			}
+			
+			private function onSelected(event : SelectorEvent) : void {
+				var district:MapDistrict = (selector.selection as MapDistrict);
+				if(district){
+					tipLbl.text = "Текущий: " + district.district.title;
+					tipLbl.setStyle("color", 0xffffff);
+					
+					GameApplication.app.so.data["currentDistrictID"] = district.district.id;
+					GameApplication.app.so.flush();
+				}
+			}
+			
+			private function onDistrictClick(e:MouseEvent):void{
+				if(activeCar){
+					var district:MapDistrict = (e.currentTarget as MapDistrict);
+					if(district){
+						if(district.district.id == DistrictModel.DISTRICT4 ||
+							(district.district.id == DistrictModel.DISTRICT1 && (activeCar.prototype.carClass == 1 || activeCar.prototype.carClass == 2)) ||
+							(district.district.id == DistrictModel.DISTRICT2 && (activeCar.prototype.carClass == 3 || activeCar.prototype.carClass == 4))){
+							selector.selected(district);
+						}
+					}
+				}
+			}
+			
+			private function onBetDistrictClick(e:MouseEvent):void{
+				GameApplication.app.popuper.show(new PopUpGameBet());
+			}
+			
+			private function onDistrictRollOver(e:MouseEvent):void{
+				var district:MapDistrict = (e.currentTarget as MapDistrict);
+				if(district){
+					if(district.district.id == DistrictModel.DISTRICT4 || 
+						(district.district.id == DistrictModel.DISTRICT1 && (activeCar.prototype.carClass == 1 || activeCar.prototype.carClass == 2)) ||
+						(district.district.id == DistrictModel.DISTRICT2 && (activeCar.prototype.carClass == 3 || activeCar.prototype.carClass == 4))){
+						tipLbl.text = "Кликните, чтобы выбрать «" + district.district.title + "»";
+						tipLbl.setStyle("color", 0x00ff00);
+					}else if(district.district.id == DistrictModel.DISTRICT5){
+						tipLbl.text = "Кликните, чтобы выбрать заезд на деньги";
+						tipLbl.setStyle("color", 0x00ff00);
+					}else{
+						tipLbl.text = "Текущий авто не подходит по классу для этого района";
+						tipLbl.setStyle("color", 0xff0000);
+					}
+				}
+			}
+			
+			private function onDistrictRollOut(e:MouseEvent):void{
+				var district:MapDistrict = (selector.selection as MapDistrict);
+				if(district){
+					tipLbl.text = "Текущий: «" + district.district.title + "»";
+					tipLbl.setStyle("color", 0xffffff);
+				}
+			}
+
+			protected function buttonmxmlexit1_clickHandler(event:MouseEvent):void
+			{
+				GameApplication.app.navigator.goHome();
+			}
+
+
+			protected function buttonmxml1_clickHandler(event:MouseEvent):void
+			{
+				GameApplication.app.popuper.show(new PopUpTutorialMap());
+			}
+
+
+			protected function gameBtn_clickHandler(event:MouseEvent):void
+			{
+				var district:MapDistrict = (selector.selection as MapDistrict);
+				if(district){
+					GameApplication.app.gamemanager.sendStartRequest(district.district.id);
+				}
+			}
+			
+			protected function postScreen_clickHandler(event:MouseEvent):void
+			{
+				var _mc:* = GameApplication.app.gameContainer.scene;
+				var bmd:BitmapData = new BitmapData(_mc.width, _mc.height, true);
+				bmd.draw(_mc);
+				
+				GameApplication.app.apimanager.post("Заголовок", 'Снимок сделан в игре "Реальные гонки" (http://vk.com/rrace). Присоединяйтесь!', bmd, true);
+				
+				GameApplication.app.soundmanager.play(SoundType.CLICK);
+			}
+			
+			
+			protected function postChat_clickHandler(event:MouseEvent):void
+			{
+				var _mc:* = GameApplication.app.gameContainer.chat;
+				var bmd:BitmapData = new BitmapData(_mc.width, _mc.height, true);
+				bmd.draw(_mc);
+				
+				GameApplication.app.apimanager.post("Заголовок", 'Снимок сделан в игре "Реальные гонки" (http://vk.com/rrace). Присоединяйтесь!', bmd, true);
+				
+				GameApplication.app.soundmanager.play(SoundType.CLICK);
+			}
+		]]>
+	</fx:Script>
+	<iconswf:IconMXML iconClass="{MapMc}"/>
+	<mx:UIComponent id="districsUI"/>
+	<iconswf:IconMXML iconClass="{MapFrame}"/>
+	<s:Rect width="100%" height="100%">
+		<s:fill>
+			<s:SolidColor color="0x0" alpha="0"/>
+		</s:fill>
+		<s:stroke>
+			<s:SolidColorStroke color="0xB7B7B7" weight="2"/>
+		</s:stroke>
+	</s:Rect>
+	<s:Label width="100%" top="8" textAlign="center" text="Карта" fontSize="30" color="0xFFFFFF" fontWeight="bold" fontStyle="italic"/>
+	<s:Label id="tipLbl" left="10" bottom="10" color="0xFFFFFF"/>
+	
+	<buttonswf:ButtonMXML iconClass="{QuestionBtn}" top="27" right="10" click="buttonmxml1_clickHandler(event)"/>
+	<buttonswf:ButtonMXMLExit toolTip="В гараж" iconClass="{ExitBtn}" width="60" height="38" right="20" bottom="3" click="buttonmxmlexit1_clickHandler(event)"/>
+	
+	<s:HGroup width="100%" horizontalAlign="center" bottom="7">
+		<buttonswf:ButtonMXML id="gameBtn" iconClass="{IconButStart}" click="gameBtn_clickHandler(event)" toolTip="В заезд!"/>
+	</s:HGroup>
+	
+	<s:HGroup width="100%" top="5" paddingRight="80" horizontalAlign="right">
+		<buttonswf:ButtonMXML id="postScreen" iconClass="{PostScreenBtn}" click="postScreen_clickHandler(event)" toolTip="Сделать снимок экрана"/>
+		<buttonswf:ButtonMXML id="postChat" iconClass="{PostChatBtn}" click="postChat_clickHandler(event)" toolTip="Сделать снимок чата"/>
+	</s:HGroup>
+</s:Group>

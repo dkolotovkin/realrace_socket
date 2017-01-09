@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark" 
+		 xmlns:mx="library://ns.adobe.com/flex/mx" top="10" width="300" height="100%" xmlns:button="application.components.button.*" xmlns:money="application.gamecontainer.persinfobar.money.*" xmlns:buymoney="application.components.popup.buymoney.*">
+	
+	<fx:Script>
+		<![CDATA[
+			import application.GameApplication;
+			
+			import spark.filters.DropShadowFilter;
+			[Bindable]
+			public var text:String = "";
+			public var closeFunction:Function;
+			
+			protected function buy25_clickHandler(event:MouseEvent):void{
+				GameApplication.app.apimanager.buyMoney(30, 200);
+				closeFunction && closeFunction();
+			}
+			
+			protected function buy80_clickHandler(event:MouseEvent):void{
+				GameApplication.app.apimanager.buyMoney(100, 700);
+				closeFunction && closeFunction();
+			}
+			
+			
+			protected function buy120_clickHandler(event:MouseEvent):void{
+				GameApplication.app.apimanager.buyMoney(150, 1300);
+				closeFunction && closeFunction();
+			}
+			
+			
+			protected function buy400_clickHandler(event:MouseEvent):void{
+				GameApplication.app.apimanager.buyMoney(450, 4500);
+				closeFunction && closeFunction();
+			}
+			
+			
+			protected function buy1000_clickHandler(event:MouseEvent):void
+			{
+				GameApplication.app.apimanager.buyMoney(1100, 12000);
+				closeFunction && closeFunction();
+			}
+			
+		]]>
+	</fx:Script>
+	
+	<s:VGroup width="100%" height="100%" horizontalAlign="left" gap="10">
+		<s:Label text="Купить валюту" width="100%" color="0xffffff" fontSize="16" fontWeight="normal" textAlign="center"/>
+		<s:HGroup verticalAlign="middle">
+			<button:GameButton id="buy25" label="купить" width="60" click="buy25_clickHandler(event)"/>
+			<money:MoneyReal moneyReal="200"/>
+		</s:HGroup>
+		<s:HGroup verticalAlign="middle">
+			<button:GameButton id="buy80" label="купить" width="60" click="buy80_clickHandler(event)"/>
+			<money:MoneyReal moneyReal="666"/>
+			<s:Label text="+ 34 = 700" height="12" color="0xFFFF99" fontSize="17" fontWeight="bold" filters="{[new DropShadowFilter(3, 45, 0x000000, 1, 5, 5, .4)]}"/>
+		</s:HGroup>
+		<s:HGroup verticalAlign="middle">
+			<button:GameButton id="buy120" label="купить" width="60" click="buy120_clickHandler(event)"/>
+			<money:MoneyReal moneyReal="1000"/>
+			<s:Label text="+ 300 = 1300" height="12" color="0xFFFF99" fontSize="17" fontWeight="bold" filters="{[new DropShadowFilter(3, 45, 0x000000, 1, 5, 5, .4)]}"/>
+		</s:HGroup>
+		<s:HGroup verticalAlign="middle">
+			<button:GameButton id="buy400" label="купить" width="60" click="buy400_clickHandler(event)"/>
+			<money:MoneyReal moneyReal="3000"/>
+			<s:Label text="+ 1500 = 4500" height="12" color="0xFFFF99" fontSize="17" fontWeight="bold" filters="{[new DropShadowFilter(3, 45, 0x000000, 1, 5, 5, .4)]}"/>
+		</s:HGroup>
+		<s:HGroup verticalAlign="middle">
+			<button:GameButton id="buy1000" label="купить" width="60" click="buy1000_clickHandler(event)"/>
+			<money:MoneyReal moneyReal="7333"/>
+			<s:Label text="+ 4667 = 12000" height="12" color="0xFFFF99" fontSize="17" fontWeight="bold" filters="{[new spark.filters.DropShadowFilter(3, 45, 0x000000, 1, 5, 5, .4)]}"/>
+		</s:HGroup>
+		<buymoney:ExchangeComponent/>
+	</s:VGroup>
+</s:Group>

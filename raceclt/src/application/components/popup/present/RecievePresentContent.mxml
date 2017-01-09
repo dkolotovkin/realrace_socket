@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009"
+		 xmlns:s="library://ns.adobe.com/flex/spark" initialize="group1_initializeHandler(event)"
+		 xmlns:mx="library://ns.adobe.com/flex/mx" top="20" width="100%" height="100%" xmlns:button="application.components.button.*" xmlns:money="application.gamecontainer.persinfobar.money.*" xmlns:article="application.gamecontainer.scene.catalog.article.*">	
+	
+	<fx:Script>
+		<![CDATA[
+			import application.GameApplication;
+			import application.GameMode;
+			
+			import mx.events.FlexEvent;			
+			
+			protected function onClick(event:MouseEvent):void
+			{
+				GameApplication.app.popuper.hidePopUp();
+			}
+			
+			protected function gamebutton1_clickHandler(event:MouseEvent):void
+			{
+				GameApplication.app.popuper.currentpopup.closeBt.visible = false;
+				var _mc:* = GameApplication.app.popuper.currentpopup;
+				var bmd:BitmapData = new BitmapData(_mc.width, _mc.height, true);
+				bmd.draw(_mc);
+				
+				GameApplication.app.apimanager.post("Заголовок", 'Мой подарок в игре "Реальные гонки" (http://vk.com/rrace).', bmd);
+				GameApplication.app.popuper.hidePopUp();
+			}
+			
+			protected function group1_initializeHandler(event:FlexEvent):void
+			{
+				if(GameApplication.app.config.mode == GameMode.VK || GameApplication.app.config.mode == GameMode.OD || GameApplication.app.config.mode == GameMode.MM){				
+					postGroup.includeInLayout = postGroup.visible = true;
+				}
+			}
+		]]>
+	</fx:Script>
+	
+	<s:VGroup width="100%" height="100%" horizontalAlign="center">
+		<s:Label id="description" width="320" color="0xFF9933" fontSize="18" fontWeight="normal" textAlign="center"/>
+		<article:Article id="article" visible="false" includeInLayout="false"/>
+		<article:CarArticle id="carArticle" visible="false" includeInLayout="false"/>
+		<s:HGroup id="postGroup" width="100%" horizontalAlign="center" visible="false" includeInLayout="false">
+			<button:GameButton label="рассказать друзьям" click="gamebutton1_clickHandler(event)"/>
+		</s:HGroup>
+	</s:VGroup>
+</s:Group>

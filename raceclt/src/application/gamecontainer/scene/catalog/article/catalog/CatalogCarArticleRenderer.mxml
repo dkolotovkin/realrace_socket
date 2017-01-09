@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:ItemRenderer xmlns:fx="http://ns.adobe.com/mxml/2009" mouseChildren="false"
+				xmlns:s="library://ns.adobe.com/flex/spark" rollOver="itemrenderer1_rollOverHandler(event)" rollOut="itemrenderer1_rollOutHandler(event)"
+				xmlns:mx="library://ns.adobe.com/flex/mx" buttonMode="true" implements="utils.managers.tooltip.IToolTiped"
+				autoDrawBackground="false" xmlns:article="application.gamecontainer.scene.catalog.article.*" xmlns:money="application.gamecontainer.persinfobar.money.*" xmlns:catalog="application.gamecontainer.scene.catalog.article.catalog.*">
+	<fx:Script>
+		<![CDATA[
+			import application.gamecontainer.scene.catalog.article.LibraryMovieClass;
+			
+			import utils.managers.tooltip.ToolTipType;
+			import utils.models.ItemPrototype;
+			import utils.models.car.CarModel;
+			import utils.models.car.CarPrototypeModel;
+			import utils.models.item.Item;
+			import utils.shop.CategoryType;
+			
+			public var title:String;
+			public var size:String;
+			public var power:int;
+			public var mass:int;
+			public var carClass:int;
+			public var minLevel:int;
+			
+			private var _mc:MovieClip;
+			
+			override public function set selected(value:Boolean):void{
+				super.selected = value;
+				if(value)
+					currentState = "selected";
+				else
+					currentState = "normal";
+			}
+			
+			override public function set data(value:Object):void{
+				super.data = value;
+				
+				var prototype:CarPrototypeModel = value as CarPrototypeModel;
+				if(prototype){
+					init(prototype);
+					
+					title = prototype.title;
+					size = prototype.size;
+					power = prototype.power;
+					mass = prototype.mass;
+					carClass = prototype.carClass;
+					minLevel = prototype.minLevel;
+					
+					if(prototype.priceReal > 0){
+						moneyrealcomp.visible = moneyrealcomp.includeInLayout = true;
+						moneycomp.visible = moneycomp.includeInLayout = false;
+						moneyrealcomp.moneyReal = prototype.priceReal;
+					}else{
+						moneyrealcomp.visible = moneyrealcomp.includeInLayout = false;
+						moneycomp.visible = moneycomp.includeInLayout = true;
+						moneycomp.money = prototype.price;
+					}
+				}
+			}
+			
+			protected function itemrenderer1_rollOverHandler(event:MouseEvent):void
+			{
+				if(!selected)
+					currentState = "over";				
+			}
+			
+			
+			protected function itemrenderer1_rollOutHandler(event:MouseEvent):void
+			{
+				if(!selected)
+					currentState = "normal";
+			}
+			
+			public function init(prototype:CarPrototypeModel):void{
+				if(_mc && moviegr.contains(_mc)){
+					moviegr.removeChild(_mc);
+				}
+				
+				var classMovie:Class = LibraryMovieClass.getCarClassByCarPrototypeID(prototype.id);
+				
+				_mc = new classMovie();
+				_mc.gotoAndStop(1);
+				moviegr.addChild(_mc);				
+				
+				var rect:Rectangle = _mc.getBounds(_mc);
+				var otnW:Number = moviegr.width / rect.width;
+				var otnH:Number = moviegr.height / rect.height;
+				var k:Number = 1;
+				if (otnW > otnH) k = otnH else k = otnW;
+				
+				_mc.width *= k;
+				_mc.height *= k;
+				
+				_mc.x = Math.round(-rect.x * k + (moviegr.width - _mc.width) / 2);
+				_mc.y = Math.round(-rect.y * k + (moviegr.height - _mc.height) / 2);
+			}
+			
+			public function get toolTipDelay() : int {				
+				return 200;
+			}
+			
+			public function get toolTipDX() : int {
+				return 10;
+			}
+			
+			public function get toolTipDY() : int {
+				return 2;
+			}
+			
+			public function get toolTipType() : int {				
+				return ToolTipType.CAR_PROTOTYPE;
+			}
+			
+		]]>
+	</fx:Script>	
+	<s:states>
+		<s:State name="normal"/>
+		<s:State name="over"/>
+		<s:State name="selected"/>
+	</s:states>	
+	
+	<s:VGroup width="100%" height="100%" horizontalAlign="center">
+		<s:Group width="250" height="100">
+			<s:Rect includeIn="normal" width="100%" height="100%" radiusX="8" radiusY="8">
+				<s:stroke>
+					<s:SolidColorStroke color="0xffffff"/>
+				</s:stroke>
+				<s:fill>
+					<s:SolidColor color="0xffffff" alpha=".1"/>
+				</s:fill>
+			</s:Rect>
+			
+			<s:Rect includeIn="over" width="100%" height="100%" radiusX="8" radiusY="8">
+				<s:stroke>
+					<s:SolidColorStroke color="0xffffff"/>
+				</s:stroke>
+				<s:fill>
+					<s:SolidColor color="0xffffff" alpha=".2"/>
+				</s:fill>
+			</s:Rect>
+			
+			<s:Rect includeIn="selected" width="100%" height="100%" radiusX="8" radiusY="8">
+				<s:stroke>
+					<s:SolidColorStroke color="0xff9900" weight="2"/>
+				</s:stroke>
+				<s:fill>
+					<s:SolidColor color="0xffffff" alpha=".1"/>
+				</s:fill>
+			</s:Rect>
+			<mx:UIComponent id="moviegr" width="240" height="90" left="5" right="5" top="5" bottom="5"/>
+		</s:Group>
+		
+		<money:Money id="moneycomp"/>
+		<money:MoneyReal id="moneyrealcomp"/>		
+	</s:VGroup>
+</s:ItemRenderer>

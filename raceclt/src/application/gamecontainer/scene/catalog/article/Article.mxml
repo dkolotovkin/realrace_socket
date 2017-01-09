@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009"
+		 xmlns:s="library://ns.adobe.com/flex/spark"
+		 xmlns:mx="library://ns.adobe.com/flex/mx" width="70" height="70">
+	<fx:Script>
+		<![CDATA[
+			import utils.models.car.CarModel;
+			import utils.models.item.Item;
+			import utils.models.item.ItemType;
+			import utils.shop.CategoryType;			
+			private var _mc:MovieClip;
+			[Bindable]
+			public var item:Item;
+			[Bindable]
+			private var count:int;
+			
+			public function init(item:Item):void{
+				if(_mc && moviegr.contains(_mc)){
+					moviegr.removeChild(_mc);
+				}				
+				this.item = item;
+				
+				var classMovie:Class = LibraryMovieClass.getClassByItemPrototypeID(item.prototypeid);
+				count = item.count;
+				
+				_mc = new classMovie();
+				_mc.gotoAndStop(1);
+				moviegr.addChild(_mc);				
+				
+				var rect:Rectangle = _mc.getBounds(_mc);
+				var otnW:Number = moviegr.width / rect.width;
+				var otnH:Number = moviegr.height / rect.height;
+				var k:Number = 1;
+				if (otnW > otnH) k = otnH else k = otnW;
+				
+				_mc.width *= k;
+				_mc.height *= k;
+				
+				_mc.x = Math.round(-rect.x * k + (moviegr.width - _mc.width) / 2);
+				_mc.y = Math.round(-rect.y * k + (moviegr.height - _mc.height) / 2);
+				
+				if (item.count <= 1){
+					countl.visible = false;
+				}
+			}
+		]]>
+	</fx:Script>
+
+	<s:states>
+		<s:State name="normal"/>
+		<s:State name="over"/>
+		<s:State name="selected"/>
+	</s:states>	
+	
+	<s:Rect includeIn="normal" width="100%" height="100%" radiusX="8" radiusY="8">
+		<s:stroke>
+			<s:SolidColorStroke color="0xffffff"/>
+		</s:stroke>
+		<s:fill>
+			<s:SolidColor color="0xffffff" alpha=".1"/>
+		</s:fill>
+	</s:Rect>
+	
+	<s:Rect includeIn="over" width="100%" height="100%" radiusX="8" radiusY="8">
+		<s:stroke>
+			<s:SolidColorStroke color="0xffffff"/>
+		</s:stroke>
+		<s:fill>
+			<s:SolidColor color="0xffffff" alpha=".2"/>
+		</s:fill>
+	</s:Rect>
+	
+	<s:Rect includeIn="selected" width="100%" height="100%" radiusX="8" radiusY="8">
+		<s:stroke>
+			<s:SolidColorStroke color="0xff9900" weight="2"/>
+		</s:stroke>
+		<s:fill>
+			<s:SolidColor color="0xffffff" alpha=".1"/>
+		</s:fill>
+	</s:Rect>
+	<mx:UIComponent id="moviegr" width="60" height="60" left="5" right="5" top="5" bottom="5"/>
+	<s:Label id="countl" text="{count}" toolTip="количество" fontSize="15" color="0xffffff" fontWeight="bold" right="5" bottom="3"/>
+</s:Group>

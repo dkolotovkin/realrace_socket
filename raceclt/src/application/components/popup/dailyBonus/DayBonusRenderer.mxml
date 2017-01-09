@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" initialize="group1_initializeHandler(event)"
+		 xmlns:s="library://ns.adobe.com/flex/spark" 
+		 xmlns:mx="library://ns.adobe.com/flex/mx" xmlns:money="application.gamecontainer.persinfobar.money.*" xmlns:iconswf="application.components.iconswf.*">
+	<s:layout>
+		<s:BasicLayout/>
+	</s:layout>
+	<s:VGroup horizontalAlign="center">
+		<s:Label color="0xffffff" id="description"/>
+		<s:Group width="50" height="50">
+			<iconswf:IconMXML id="greenIcon" iconClass="{CircleGreen}"/>
+			<iconswf:IconMXML id="redIcon" iconClass="{CircleRed}"/>
+		</s:Group>
+		<money:Money id="money" money="10"/>
+	</s:VGroup>
+
+	<fx:Script>
+		<![CDATA[
+			import application.GameApplication;
+			
+			import mx.events.FlexEvent;
+			
+			public var day:int;
+			public var days:int;
+
+			protected function group1_initializeHandler(event:FlexEvent):void
+			{
+				if(day == 1){
+					description.text = "1 день";
+				}else if(day == 2){
+					description.text = "2 дня";
+				}else if(day == 3){
+					description.text = "3 дня";
+				}else if(day == 4){
+					description.text = "4 дня";
+				}else if(day == 5){
+					description.text = "5 дней";
+				}
+				
+				if(days < day){
+					greenIcon.visible = false;
+					redIcon.visible = true;
+				}else{
+					greenIcon.visible = true;
+					redIcon.visible = false;
+				}
+				
+				money.money = Math.ceil((GameApplication.app.userinfomanager.myuser.level / 5) * 10) * day;
+			}
+		]]>
+	</fx:Script>
+</s:Group>

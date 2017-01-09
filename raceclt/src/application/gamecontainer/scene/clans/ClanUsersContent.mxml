@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" removedFromStage="group1_removedFromStageHandler(event)"
+		 xmlns:s="library://ns.adobe.com/flex/spark" initialize="group1_initializeHandler(event)"
+		 xmlns:mx="library://ns.adobe.com/flex/mx" width="100%" height="100%" xmlns:input="application.gamecontainer.chat.input.*" xmlns:iconswf="application.components.iconswf.*" xmlns:preloader="application.components.preloader.*">
+	<s:layout>
+		<s:BasicLayout/>
+	</s:layout>
+	<fx:Script>
+		<![CDATA[
+			import application.GameApplication;
+			
+			import mx.collections.ArrayCollection;
+			import mx.events.CollectionEvent;
+			import mx.events.FlexEvent;
+			
+			import utils.protocol.ProtocolValues;
+			import utils.user.UserClanInfo;
+			
+			private var _sid:int = -1;
+
+			protected function group1_initializeHandler(event:FlexEvent):void
+			{
+				inptext.textinput.addEventListener(Event.CHANGE, onChange, false, 0, true);
+				
+				GameApplication.app.models.currentClan.users = new ArrayCollection();
+				GameApplication.app.models.currentClan.users.filterFunction = filter;
+				GameApplication.app.models.currentClan.users.refresh();
+				
+				GameApplication.app.models.currentClan.countUsers = 0;
+				GameApplication.app.models.currentClan.users.addEventListener(CollectionEvent.COLLECTION_CHANGE, onChangeCollection, false, 0, true)
+				GameApplication.app.models.currentClan.end = false;
+				GameApplication.app.models.currentClan.getting = false;
+				
+				checkAndGet();
+			}
+			
+			private function onChange(e:Event):void
+			{
+				if(GameApplication.app.models.currentClan.users){
+					GameApplication.app.models.currentClan.users.refresh();
+				}
+			}
+			
+			private function onChangeCollection(e:*):void{
+				if(GameApplication.app.models.currentClan.users.length > 0){
+					preloader.visible = preloader.includeInLayout = false;
+					fullgr.visible = fullgr.includeInLayout = false;
+					bodygr.visible = bodygr.includeInLayout = true;
+				}else{
+					preloader.visible = preloader.includeInLayout = false;
+					fullgr.visible = fullgr.includeInLayout = true;
+					bodygr.visible = bodygr.includeInLayout = false;
+				}
+			}
+			
+			private function filter(user:UserClanInfo):Boolean{
+				if(inptext.text.length > 0){
+					if(user.title.toLowerCase().indexOf(inptext.text.toLowerCase()) >= 0){
+						return true;
+					}else{
+						return false;
+					}
+				}
+				return true;
+			}
+			
+			protected function body_renderHandler(event:Event):void
+			{
+				if(body.scroller.verticalScrollBar.value == body.scroller.verticalScrollBar.maximum && body.scroller.verticalScrollBar.value > 0){
+					checkAndGet();
+				}
+			}
+			
+			private function checkAndGet():void{
+				if(!GameApplication.app.models.currentClan.getting && !GameApplication.app.models.currentClan.end){
+					GameApplication.app.models.currentClan.getting = true;
+					GameApplication.app.callsmanager.call(ProtocolValues.CLAN_GET_CLAN_USERS, null, GameApplication.app.models.currentClan.clanId, GameApplication.app.models.currentClan.countUsers);
+				}
+			}
+			
+			
+			protected function group1_removedFromStageHandler(event:Event):void
+			{
+				GameApplication.app.models.currentClan.users.removeEventListener(CollectionEvent.COLLECTION_CHANGE, onChangeCollection);
+			}
+
+
+			protected function inptext_focusInHandler(event:FocusEvent):void
+			{
+				serchicon.visible = false;
+			}
+
+
+			protected function inptext_focusOutHandler(event:FocusEvent):void
+			{
+				if(_sid != -1){
+					clearInterval(_sid);
+				}
+				_sid = setInterval(onClearSearch, 1000);
+			}
+			
+			private function onClearSearch():void{
+				if(_sid != -1){
+					clearInterval(_sid);
+				}
+				
+				inptext.text = "";
+				serchicon.visible = true;
+				if(GameApplication.app.models.currentClan.users){
+					GameApplication.app.models.currentClan.users.refresh();
+				}
+			}
+
+		]]>
+	</fx:Script>
+	<s:VGroup width="100%" height="100%" gap="2">
+		<s:HGroup id="ownergr" width="100%" horizontalAlign="center" verticalAlign="middle">
+			<s:Group id="searchgr" width="120">
+				<s:Rect width="100%" height="100%" left="1" right="1" top="1" bottom="1">
+					<s:fill>
+						<s:SolidColor color="0xffffff" alpha=".1"/>
+					</s:fill>
+				</s:Rect>
+				<input:InputText id="inptext" fontSize="12" width="100%" height="18" focusIn="inptext_focusInHandler(event)" focusOut="inptext_focusOutHandler(event)"/>
+				<iconswf:IconMXML id="serchicon" iconClass="{SearchIcon}" left="5" top="3"/>
+			</s:Group>
+			<mx:Spacer width="100%"/>
+		</s:HGroup>
+		<mx:Spacer height="1"/>
+		
+		<s:Group width="100%" height="100%">
+			<preloader:PreLoaderText id="preloader" text="Загрузка информации о клубе..."/>
+			<s:Group id="bodygr" width="100%" height="100%" visible="false" includeInLayout="false">
+				<s:List id="body" render="body_renderHandler(event)" height="100%" width="100%" dataProvider="{GameApplication.app.models.currentClan.users}" itemRenderer="application.gamecontainer.scene.clans.ClanUserItemRenderer" contentBackgroundAlpha="0" borderVisible="false">
+					<s:layout>
+						<s:VerticalLayout gap="3"/>
+					</s:layout>
+				</s:List>				
+			</s:Group>
+			
+			<s:HGroup id="fullgr" width="100%" height="100%" horizontalAlign="center" verticalAlign="middle" visible="false" includeInLayout="false">
+				<s:Label fontSize="12" color="0xcccccc" text="В клубе нет ни одного участника..."/>
+			</s:HGroup>			
+		</s:Group>
+	</s:VGroup>
+</s:Group>

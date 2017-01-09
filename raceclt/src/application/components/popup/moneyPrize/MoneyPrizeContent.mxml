@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark" initialize="group1_initializeHandler(event)"
+		 xmlns:mx="library://ns.adobe.com/flex/mx" top="35" width="100%" height="100%" xmlns:button="application.components.button.*" xmlns:money="application.gamecontainer.persinfobar.money.*" xmlns:iconswf="application.components.iconswf.*" xmlns:buttonswf="application.components.buttonswf.*">
+	<fx:Script>
+		<![CDATA[
+			import application.GameApplication;
+			import application.GameMode;
+			
+			import mx.events.FlexEvent;
+			
+			public function init(prize:int, desc:String = null, real:Boolean = false):void{
+				if(real){
+					nlprize.visible = nlprize.includeInLayout = false;
+					nlrprize.visible = nlrprize.includeInLayout = true;
+					nlrprize.moneyReal = prize;
+				}else{
+					nlprize.visible = nlprize.includeInLayout = true;
+					nlrprize.visible = nlrprize.includeInLayout = false;
+					nlprize.money = prize;
+				}
+				if(desc && desc.length){
+					description.visible = description.includeInLayout = true;
+					description.text = desc;
+				}
+			}
+
+			protected function gamebutton1_clickHandler(event:MouseEvent):void
+			{
+				GameApplication.app.popuper.currentpopup.closeBt.visible = false;
+				var _mc:* = GameApplication.app.popuper.currentpopup;
+				var bmd:BitmapData = new BitmapData(_mc.width, _mc.height, true);
+				bmd.draw(_mc);
+				
+				GameApplication.app.apimanager.post("Заголовок", 'Мой выигрыш в игре "Мышиные бега. Наперегонки с друзьями" (http://vk.com/app1988291).', bmd);
+				GameApplication.app.popuper.hidePopUp();
+			}
+
+
+			protected function group1_initializeHandler(event:FlexEvent):void
+			{
+				if(GameApplication.app.config.mode == GameMode.VK || GameApplication.app.config.mode == GameMode.OD || GameApplication.app.config.mode == GameMode.MM){				
+					postGroup.includeInLayout = postGroup.visible = true;
+				}
+			}
+
+		]]>
+	</fx:Script>
+	<s:VGroup width="100%" height="100%">
+		<s:HGroup width="100%" height="100%" verticalAlign="middle">
+			<iconswf:IconMXML id="nlicon" iconClass="{IconCoins}"/>
+			<s:VGroup width="100%" height="100%" verticalAlign="middle">
+				<s:Label id="description" maxWidth="300" includeInLayout="false" visible="false" color="0xffffff" fontSize="14" fontWeight="normal"/>
+				<s:HGroup width="100%" verticalAlign="middle">
+					<s:Label text="Ваш выигрыш: " color="0xffffff" fontSize="14" fontWeight="normal"/>
+					<money:Money id="nlprize" money="{200}"/>
+					<money:MoneyReal id="nlrprize" moneyReal="{200}"/>	
+				</s:HGroup>				
+			</s:VGroup>
+		</s:HGroup>
+		<s:HGroup id="postGroup" width="100%" horizontalAlign="center" visible="false" includeInLayout="false">
+			<button:GameButton label="рассказать друзьям" click="gamebutton1_clickHandler(event)"/>
+		</s:HGroup>
+	</s:VGroup>	
+</s:Group>

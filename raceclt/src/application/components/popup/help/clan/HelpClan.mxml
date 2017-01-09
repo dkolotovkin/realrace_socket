@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark" initialize="onInit(event)"
+		 xmlns:mx="library://ns.adobe.com/flex/mx" top="20" width="500" height="385">
+	<fx:Script>
+		<![CDATA[
+			import application.GameApplication;
+			
+			import mx.events.FlexEvent;
+			
+			import spark.utils.TextFlowUtil;
+			
+			protected function onInit(event:FlexEvent):void
+			{				
+				var _text:String = "<span  color='0xFF9933' fontSize='14'>" + 
+					"Клуб" + 
+					"</span><br/>"+
+					
+					
+					"<span  color='0xFFFFFF' fontSize='12'>" + 
+					"Это организованная группа игроков, имеющая лидера - владельца клуба. " + 
+					"</span><br/><br/>" +
+					
+					
+					"<span  color='0xFF9933' fontSize='14'>" + 
+					"Владелец клуба" + 
+					"</span><br/>"+
+					
+					
+					"<span  color='0xFFFFFF' fontSize='12'>" +
+					"Любой желающий с " + GameApplication.app.config.createClanNeedLevel + " уровня может создать свой собственный клуб. "+
+					"Для того чтобы набрать игроков в собственный клуб, создатель должен выслать приглашения игрокам. "+
+					"Любой игрок, желающий вступить в клуб, должен попросить (и получить) приглашение от создателя. "+
+					"Владелец обязан следить за своим клубом и решать все организационные вопросы. Клубы, владельцы которых не проявляют активность более месяца, будут удалены."+
+					"</span><br/><br/>" +
+					
+					
+					"<span  color='0xFF9933' fontSize='14'>" + 
+					"Опыт клуба" + 
+					"</span><br/>"+
+					
+					
+					"<span  color='0xFFFFFF' fontSize='12'>" + 
+					"Игроки, состоящие в клубе, помимо собственного опыта, за каждый выигрышный заезд получают опыт для клуба. "+
+					"Таким образом чем больше участников в клубе, и чем опытнее эти участники, тем больше опыта зарабатывает клуб."+
+					"</span><br/><br/>"+
+					
+					"<span  color='0xFF9933' fontSize='14'>" + 
+					"Денежный фонд клуба" + 
+					"</span><br/>"+
+					
+					
+					"<span  color='0xFFFFFF' fontSize='12'>" + 
+					"Это счет владельца клуба. "+
+					"Игроки, состоящие в клубе, помимо собственного денежного приза, за каждый выигрышный заезд получают деньги для клуба. "+
+					"</span><br/><br/>"+
+					
+					
+					"<span  color='0xFF9933' fontSize='14'>" + 
+					"Зарплата" + 
+					"</span><br/>"+
+					
+					
+					"<span  color='0xFFFFFF' fontSize='12'>" + 
+					"Каждый участник, состоящий в клубе, имеет возможность получать зарплату. "+
+					"Уровень зарплаты зависит от должности участника в клубе (количества звезд). Должность каждому из участников назначает владелец клуба." +					
+					"</span><br/><br/>";				
+				
+				
+				rtext.textFlow = TextFlowUtil.importFromString(_text);
+			}
+			
+		]]>
+	</fx:Script>
+	<s:Scroller width="100%" height="100%">
+		<s:Group width="100%" height="100%">
+			<s:RichText id="rtext" width="100%"/>			
+		</s:Group>
+	</s:Scroller>
+</s:Group>

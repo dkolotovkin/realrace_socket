@@ -1,0 +1,673 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009"
+		 xmlns:s="library://ns.adobe.com/flex/spark" initialize="onInit(event)" creationComplete="group1_creationCompleteHandler(event)"
+		 xmlns:mx="library://ns.adobe.com/flex/mx" xmlns:useronline="application.gamecontainer.chat.useronline.*"
+		 xmlns:input="application.gamecontainer.chat.input.*" xmlns:button="application.components.button.*" 
+		 xmlns:render="application.gamecontainer.chat.render.*" xmlns:roomtabs="application.gamecontainer.chat.roomtabs.*" xmlns:userfinishedpanel="application.gamecontainer.chat.userfinishedpanel.*" xmlns:bagingame="application.gamecontainer.chat.bagingame.*" xmlns:buttonswf="application.components.buttonswf.*" xmlns:chat="application.gamecontainer.chat.*" xmlns:constructor="application.gamecontainer.chat.constructor.*" xmlns:bancomponent="application.gamecontainer.chat.bancomponent.*" xmlns:money="application.gamecontainer.persinfobar.money.*" xmlns:iconswf="application.components.iconswf.*" xmlns:minimap="application.gamecontainer.chat.minimap.*" xmlns:useritem="application.components.useritem.*" xmlns:miniMap="application.gamecontainer.chat.miniMap.*" >
+	<s:layout>
+		<s:BasicLayout/>
+	</s:layout>
+
+	<fx:Script>
+		<![CDATA[
+			import application.GameApplication;
+			import application.GameMode;
+			import application.components.popup.exitFromGameWarning.PopUpExitFromGameWarning;
+			import application.components.popup.help.PopUpHelp;
+			import application.gamecontainer.chat.smilepanel.SmilePanel;
+			
+			import flashx.textLayout.edit.SelectionFormat;
+			
+			import mx.binding.utils.BindingUtils;
+			import mx.events.FlexEvent;
+			
+			import utils.chat.ChatManager;
+			import utils.chat.formats.ChatParser;
+			import utils.chat.message.MessageType;
+			import utils.chat.room.Room;
+			import utils.chat.room.RoomEvent;
+			import utils.filters.Filter;
+			import utils.game.action.GameType;
+			import utils.log.Log;
+			import utils.models.chat.ChatTabModel;
+			import utils.models.item.ItemType;
+			import utils.protocol.ProtocolKeys;
+			import utils.protocol.ProtocolValues;
+			import utils.selector.Selector;
+			import utils.selector.SelectorEvent;
+			import utils.shop.CategoryType;
+			import utils.sound.SoundType;
+			import utils.user.User;
+			import utils.user.VipType;
+			import utils.vk.api.serialization.json.JSON;
+			
+			private var _rooms : Object = new Object();			
+			private var _activeRoom:Room;
+			private var _sid:int = -1;
+			private var _sendsid:int = -1;
+			
+			private var _mySo:SharedObject;
+			
+			private var _smiles:SmilePanel = new SmilePanel();
+			private var _needScrolling:Boolean = true;
+			private var _selector : Selector = new Selector();
+			
+			private function onAddMessage(event : RoomEvent) : void {
+				if (activeRoom && (event.room.id == activeRoom.id)){			
+					updateRender(event.room);
+				}
+			}
+			
+			private function updateRender(room:Room):void{
+				chatrender.textarea.textFlow = room.getText();
+				
+				if (_sid != -1){
+					clearInterval(_sid);
+					_sid = -1;
+				}
+				_sid = setInterval(updateTextArea, 100);
+			}
+			
+			private function updateTextArea():void{
+				if (_sid != -1){
+					clearInterval(_sid);
+					_sid = -1;
+				}
+				
+				if(_needScrolling){
+					chatrender.textarea.scrollToRange(int.MAX_VALUE, int.MAX_VALUE);
+				}
+				if(chatrender.textarea.selectable){
+					var s:SelectionFormat = new SelectionFormat(0x000000, 1, BlendMode.NORMAL, 0xffffff, 1, BlendMode.NORMAL);				
+					chatrender.textarea.textFlow.interactionManager.focusedSelectionFormat = s;					
+				}
+			}
+			
+			override public function set initialized(value : Boolean) : void {
+				super.initialized = value;
+				_selector.addEventListener(SelectorEvent.SELECTED, onSelectedRoom, false, 0, true);
+				_selector.addEventListener(SelectorEvent.UNSELECTED, onUnselectedRoom, false, 0, true);
+				_activeRoom && selectRoom(int(_activeRoom.id));				
+				
+				sendbtn.addEventListener(MouseEvent.CLICK, onClickSend, false, 0, true);
+				input.addEventListener(KeyboardEvent.KEY_UP,onEnterPress);	
+			}
+			
+			private function onClickSend(e:MouseEvent):void{
+				sendMessage();
+			}
+			
+			private function onEnterPress(event : KeyboardEvent) : void {			
+				if (event.keyCode == Keyboard.ENTER) {
+					sendMessage();
+				}
+			}
+			
+			private function sendMessage():void{
+				if(GameApplication.app.userinfomanager.myuser.level < GameApplication.app.config.levelFromChatEnabled || GameApplication.app.userinfomanager.myuser.id <= 0 || GameApplication.app.gamemanager.gameMode){
+					return;
+				}
+				if(_sendsid == -1){
+					var str:String = ChatParser.parse(input.text);
+					if (str.length){
+						if(activeRoom && activeRoom.id == GameApplication.app.chatmanager.commonroom.id && GameApplication.app.config.mode != GameMode.SITE &&
+							GameApplication.app.userinfomanager.myuser.vip != VipType.VIP_GOLD){
+							if(GameApplication.app.userinfomanager.myuser.money <= 0){
+								GameApplication.app.popuper.showInfoPopUp("У вас недостаточно денег для отправки сообщения.");
+								return;
+							}
+							GameApplication.app.userinfomanager.myuser.money = Math.max(0, GameApplication.app.userinfomanager.myuser.money - 1);
+						}
+						
+						GameApplication.app.soundmanager.play(SoundType.SEND_MESSAGE);
+						
+						if (GameApplication.app.models.chatForUser){
+							if(str.indexOf(GameApplication.app.config.lineSeparator) == -1){
+								GameApplication.app.callsmanager.call(ProtocolValues.SEND_MESSAGE, null, str, String(GameApplication.app.models.chatForUser.id), activeRoom.id);									
+							}
+							
+							if(GameApplication.app.banmanager.bantime <= 0){
+								var m:Object = new Object();
+								m[ProtocolKeys.TYPE] = MessageType.MESSAGE;
+								m[ProtocolKeys.ROOM_ID] = activeRoom.id;
+								m[ProtocolKeys.FROM] = User.createChatUserObjectByUser(GameApplication.app.userinfomanager.myuser);
+								m[ProtocolKeys.TO] = User.createChatUserObjectByUser(GameApplication.app.models.chatForUser);
+								m[ProtocolKeys.TEXT] = str.substr(0, Math.min(str.length, 120));
+								activeRoom.addMessage(m);
+							}
+							
+							input.text = "";
+							GameApplication.app.models.chatForUser = null;
+							return;						
+						}
+						var msgText2:String = str.substr(0, Math.min(str.length, 120));
+						if(msgText2.indexOf(GameApplication.app.config.lineSeparator) == -1){
+							if(int(activeRoom.id) < 0){
+								//приватные сообщения
+								GameApplication.app.callsmanager.call(ProtocolValues.SEND_MESSAGE, null, msgText2, Math.abs(int(activeRoom.id)), activeRoom.id);
+							}else{
+								GameApplication.app.callsmanager.call(ProtocolValues.SEND_MESSAGE, null, msgText2, "0", activeRoom.id);
+							}																
+						}
+						if(GameApplication.app.banmanager.bantime <= 0){
+							var m2:Object = new Object();
+							m2[ProtocolKeys.TYPE] = MessageType.MESSAGE;
+							m2[ProtocolKeys.ROOM_ID] = activeRoom.id;
+							m2[ProtocolKeys.FROM] = User.createChatUserObjectByUser(GameApplication.app.userinfomanager.myuser);
+							m2[ProtocolKeys.TEXT] = str.substr(0, Math.min(str.length, 120));
+							activeRoom.addMessage(m2);
+						}
+						
+						input.text = "";
+					}
+					_sendsid = setInterval(endSendTimeOut, 1000);
+				}
+			}
+			
+			private function endSendTimeOut():void{
+				clearInterval(_sendsid);
+				_sendsid = -1;
+			}
+			
+			public function onSetPrivateUser(user:User) : void {
+				if (user){
+					var room:Room = getPrivateOrCreate(user.id, user.title);
+					user && room.addUser(user);					
+					room.addUser(GameApplication.app.userinfomanager.myuser);
+					selectRoom(int(room.id));
+					input.textinput.setFocus();
+				}else{
+					var m:Object = new Object();
+					m[ProtocolKeys.TYPE] = MessageType.SYSTEM;
+					m[ProtocolKeys.TEXT] = "Пользователь вышел из игры";
+					activeRoom.addMessage(m);									
+				}
+			}
+			
+			//ДЕЙСТВИЯ С КОМНАТАМИ
+			public function addRoom(room:Room, privateRoom:Boolean = false):Room{
+				room.addEventListener(RoomEvent.ADD_MESSAGE, onAddMessage, false, 0, true);
+				
+				var chatTabModel:ChatTabModel = new ChatTabModel();
+				chatTabModel.roomId = int(room.id);
+				chatTabModel.title = room.title;
+				GameApplication.app.models.chatTabsCollection.addItem(chatTabModel);
+				
+				_rooms[int(room.id)] = room;				
+				return room;
+			}			
+			public function removeRoomByID(id:int):void{				
+				removeRoom(_rooms[id]);
+			}
+			public function removeRoom(room:Room):void{
+				if(room){
+					var chatTabModel:ChatTabModel;
+					for(var i:int = 0; i < GameApplication.app.models.chatTabsCollection.length; i++){
+						chatTabModel = GameApplication.app.models.chatTabsCollection.getItemAt(i) as ChatTabModel;
+						if(chatTabModel && int(chatTabModel.roomId) == int(room.id)){
+							GameApplication.app.models.chatTabsCollection.removeItemAt(i);
+							break;
+						}
+					}
+					
+					userspanel.activeRoom = getCommonRoom();
+					
+					room.clear();
+					room.removeEventListener(RoomEvent.ADD_MESSAGE, onAddMessage);
+					delete _rooms[int(room.id)];								
+					
+					if (_selector.selection == room) {
+						_selector.selected(getCommonRoom());
+						
+						userspanelcommon.visible = userspanelcommon.includeInLayout = true;
+						userspanel.visible = userspanel.includeInLayout = false;
+					}
+					chatrender.textarea.scrollToRange(int.MAX_VALUE, int.MAX_VALUE);
+				}
+			}
+			public function addPrivateMessage(message:Object):void{
+				var room:Room;
+				var from:User;
+				if(message[ProtocolKeys.FROM]){
+					from = User.createFromObject(message[ProtocolKeys.FROM]);
+					if(activeRoom && from && int(activeRoom.id) != -1 * from.id){
+						GameApplication.app.soundmanager.play(SoundType.RECIVE_MESSAGE);
+					}
+				}
+				var to:User
+				if(message[ProtocolKeys.TO]){
+					to = User.createFromObject(message[ProtocolKeys.TO]);
+				}
+				
+				if (from && from.id != GameApplication.app.userinfomanager.myuser.id) {	
+					room = getPrivateOrCreate(from.id, from.title);					
+				}else{
+					if (to != null){
+						room = getPrivateOrCreate(to.id, to.title);
+					}
+				}
+				
+				if (room != null){
+					from && room.addUser(from);
+					to && room.addUser(to);
+					room.addMessage(message);
+
+					var chatTabModel:ChatTabModel;
+					for(var i:int = 0; i < GameApplication.app.models.chatTabsCollection.length; i++){
+						chatTabModel = GameApplication.app.models.chatTabsCollection.getItemAt(i) as ChatTabModel;
+						if(chatTabModel && int(chatTabModel.roomId) == int(room.id)){
+							chatTabModel.flash = true;
+							break;
+						}
+					}
+				}else{				
+					var m:Object = new Object();
+					m[ProtocolKeys.TYPE] = MessageType.SYSTEM;
+					m[ProtocolKeys.TEXT] = "Пользователь вышел из игры";
+					activeRoom.addMessage(m);
+				}
+			}
+			public function closeRooms():void{
+				for each(var room:Room in _rooms){
+					removeRoom(room);
+				}
+			}
+			
+			public function getRoom(id : int) : Room {
+				var room : Room = _rooms[id];
+				return room;
+			}
+			public function getPrivateOrCreate(id : int,nick : String) : Room {
+				return _rooms[-id] || addRoom(new Room(-id, nick), true);
+			}
+			
+			private function onUnselectedRoom(event : SelectorEvent) : void {
+				var room : Room = (event.item as Room);
+
+				var chatTabModel:ChatTabModel;
+				for(var i:int = 0; i < GameApplication.app.models.chatTabsCollection.length; i++){
+					chatTabModel = GameApplication.app.models.chatTabsCollection.getItemAt(i) as ChatTabModel;
+					if(chatTabModel && int(chatTabModel.roomId) == int(room.id)){
+						chatTabModel.selected = false;
+						break;
+					}
+				}
+			}		
+			private function onSelectedRoom(event : SelectorEvent) : void {
+				var room : Room = event.item as Room;
+				_activeRoom = room;
+				
+				var chatTabModel:ChatTabModel;
+				for(var i:int = 0; i < GameApplication.app.models.chatTabsCollection.length; i++){
+					chatTabModel = GameApplication.app.models.chatTabsCollection.getItemAt(i) as ChatTabModel;
+					if(chatTabModel && int(chatTabModel.roomId) == int(room.id)){
+						chatTabModel.selected = true;
+						break;
+					}
+				}
+				
+				updateRender(room);				
+				userspanel.activeRoom = room;
+				
+				if(mesagePrice && room && GameApplication.app.chatmanager && GameApplication.app.chatmanager.commonroom && room.id == GameApplication.app.chatmanager.commonroom.id){
+					if(GameApplication.app.config.mode == GameMode.SITE){
+						mesagePrice.visible = mesagePrice.includeInLayout = false;
+					}else{
+						if(GameApplication.app.userinfomanager.myuser.vip == VipType.VIP_GOLD){
+							mesagePrice.visible = mesagePrice.includeInLayout = false;
+						}else{
+							mesagePrice.visible = mesagePrice.includeInLayout = true;
+						}
+					}
+				}else{
+					mesagePrice.visible = mesagePrice.includeInLayout = false;
+				}
+			}
+			public function get activeRoom() : Room {
+				return _selector.selection as Room;
+			}
+			public function set activeRoom(room:Room):void{
+				_activeRoom = room;
+				if(_activeRoom && initialized){
+					selectRoom(int(_activeRoom.id));
+				}
+			}
+			
+			public function selectRoom(id : int) : Boolean {
+				var room : Room = _rooms[id];	
+				if (room) {
+					_selector.selected(room);
+					
+					userspanelcommon.visible = userspanelcommon.includeInLayout = (room.id == GameApplication.app.chatmanager.commonroom.id);
+					userspanel.visible = userspanel.includeInLayout = (room.id != GameApplication.app.chatmanager.commonroom.id);
+					
+					return true;
+				}
+				return false;
+			}			
+			
+			private function getCommonRoom(priv:Boolean = true) : Room {
+				for each (var room : Room in _rooms) {
+					try{
+						if(room.id == GameApplication.app.chatmanager.commonroom.id){
+							return room;
+						}
+					}catch(e:*){						
+					}
+				}			
+				return null;
+			}
+			
+			public function getUserByID(uid : int) : User {
+				var user : User;
+				for each (var room : Room in _rooms) {
+					user = room.getUser(uid);
+					if (user) {						
+						return user;
+					}
+				}
+				return null;
+			}
+			
+			public function getUserByRoomIdByUserId(rid:uint, uid : int) : User {
+				var user : User;
+				for each (var room : Room in _rooms) {
+					if(int(room.id) == rid){
+						user = room.getUser(uid);
+						if (user) {
+							return user;
+						}
+					}
+				}
+				return null;
+			}
+			
+			public function useGameItem(roomID:int, initiatorID:int, itemtype:int):void{
+				var room:Room = getRoom(roomID);
+				if (room){
+					var message:Object = new Object();
+					message[ProtocolKeys.FROM_ID] = initiatorID;
+					message[ProtocolKeys.TYPE] = MessageType.USEITEM;
+					if (itemtype == ItemType.BOX){
+						message[ProtocolKeys.TEXT] = "поставил(а) ящик"
+					}else if (itemtype == ItemType.BALL){
+						message[ProtocolKeys.TEXT] = "бросил(а) мячик"
+					}else if (itemtype == ItemType.STATIC){
+						message[ProtocolKeys.TEXT] = "поставил(а) стену"
+					}else if (itemtype == ItemType.HEAVYBOX){
+						message[ProtocolKeys.TEXT] = "поставил(а) наковальню"
+					}else if (itemtype == ItemType.STICK){
+						message[ProtocolKeys.TEXT] = "поставил(а) палку"
+					}else if (itemtype == ItemType.SPRINGBROAD){
+						message[ProtocolKeys.TEXT] = "поставил(а) батут"
+					}else if (itemtype == ItemType.KERNELLEFT){
+						message[ProtocolKeys.TEXT] = "метнул(а) ядро ВЛЕВО"
+					}else if (itemtype == ItemType.KERNELRIGHT){
+						message[ProtocolKeys.TEXT] = "метнул(а) ядро ВПРАВО"
+					}else if (itemtype == ItemType.MAGIC_HAND){
+						message[ProtocolKeys.TEXT] = "убрал(а) предмет"
+					}else if (itemtype == ItemType.GUN){
+						message[ProtocolKeys.TEXT] = "выстрелил(а)"
+					}else if (itemtype == ItemType.FREEZE){
+						message[ProtocolKeys.TEXT] = " всех заморозил(a) на 10 секунд"
+					}else if (itemtype == ItemType.ANTIFREEZE){
+						message[ProtocolKeys.TEXT] = " всех разморозил(а)"
+					}else{
+						return;
+					}
+					room.addMessage(message);
+				}
+			}
+			
+
+			protected function onExit(event:MouseEvent):void
+			{
+				if(GameApplication.app.models.settings.exitFromGameWarning && !GameApplication.app.gamemanager.myUserFinished && GameApplication.app.gamemanager.gameType == GameType.SIMPLE){
+					GameApplication.app.popuper.show(new PopUpExitFromGameWarning());
+				}else{
+					exitFromGame();
+				}
+			}
+			
+			public function exitFromGame():void
+			{
+				removeRoomByID(GameApplication.app.gamemanager.gameworld.roomID);
+				GameApplication.app.gamemanager.userexit();
+				GameApplication.app.gamemanager.exitGame();
+			}
+			
+			protected function onExitConstructorTest(event:MouseEvent):void
+			{
+				var xml:XML;
+				if(GameApplication.app.gamemanager.gameworld) xml = GameApplication.app.gamemanager.gameworld.locationXML;
+				
+				GameApplication.app.gamemanager.exitGame();
+				GameApplication.app.constructor.testMode = false;
+				GameApplication.app.navigator.goConstructor(xml);
+			}
+
+
+			protected function onSmiles(event:MouseEvent):void
+			{
+				event.stopPropagation();
+				
+				if(!this.contains(_smiles)){
+					_smiles.top = -40;
+					_smiles.right = 5;
+					this.addElement(_smiles);
+					_smiles.show();
+				}
+			}
+			
+			public function addSmile(type:String):void{			
+				var currentposition:int = input.textinput.textDisplay.selectionActivePosition;
+				if(currentposition < 0) currentposition = input.textinput.text.length;
+				
+				input.text = input.textinput.text.slice(0, currentposition) + type + input.textinput.text.slice(currentposition, input.textinput.text.length);
+				input.textinput.textDisplay.selectRange(currentposition + type.length, currentposition + type.length);				
+				
+				hideSmiles();
+			}
+			
+			public function hideSmiles():void{
+				if(this.contains(_smiles)){
+					_smiles.hide();
+					this.removeElement(_smiles);
+				}
+			}
+
+
+			protected function onInit(event:FlexEvent):void
+			{
+				BindingUtils.bindSetter(onChangeMyUserLevel, GameApplication.app.userinfomanager.myuser, "level");
+			}
+			
+			private function onChangeMyUserLevel(value:int):void{
+				if(value < GameApplication.app.config.levelFromChatEnabled){
+					chatEnabled = false;
+				}else{
+					chatEnabled = true;
+				}
+			}
+			
+			public function set chatEnabled(value:Boolean):void{
+				if(!value){
+					if(GameApplication.app.config.levelFromChatEnabled == 2){
+						input.textinput.text = "Доступно сo " + GameApplication.app.config.levelFromChatEnabled + " уровня...";
+					}else{
+						input.textinput.text = "Доступно с " + GameApplication.app.config.levelFromChatEnabled + " уровня...";
+					}
+					input.textinput.editable = false;
+					input.textinput.enabled = false;
+					input.textinput.alpha = .5;
+					sendbtn.enabled = smilebtn.enabled = false;
+				}else{
+					input.textinput.text = "";
+					input.textinput.editable = true;
+					input.textinput.enabled = true;
+					input.textinput.alpha = 1;
+					sendbtn.enabled = smilebtn.enabled = true;
+				}
+			}
+
+			protected function group1_creationCompleteHandler(event:FlexEvent):void
+			{
+				_smiles.width = 369;
+				_smiles.height = 204;
+			}
+
+			protected function iconmxml1_clickHandler(event:MouseEvent):void
+			{
+				GameApplication.app.popuper.show(new PopUpHelp(CategoryType.CHAT_RULE));
+				
+				GameApplication.app.soundmanager.play(SoundType.CLICK);
+			}
+
+
+			protected function chatplaystop_clickHandler(event:MouseEvent):void
+			{
+				_needScrolling = !_needScrolling;
+				if(_needScrolling == true){
+					updateTextArea();
+					chatplaystop.icon.gotoAndStop(1);
+					chatplaystop.toolTip = "Остановить чат";
+				}else{
+					chatplaystop.icon.gotoAndStop(2);
+					chatplaystop.toolTip = "Запустить чат (autoscrolling)";
+				}
+				
+				GameApplication.app.soundmanager.play(SoundType.CLICK);
+			}
+
+
+			protected function buttonmxml1_clickHandler(event:MouseEvent):void
+			{
+				GameApplication.app.models.chatForUser = null;
+			}
+
+			protected function settings_clickHandler(event:MouseEvent):void
+			{
+				GameApplication.app.popuper.show(new PopUpHelp(CategoryType.SETTINGS));
+				
+				GameApplication.app.soundmanager.play(SoundType.CLICK);
+			}
+
+
+			protected function soundOn_clickHandler(event:MouseEvent):void
+			{
+				GameApplication.app.models.settings.soundsOn = true;
+				GameApplication.app.so.data["soundsOn"] = true;
+				GameApplication.app.so.flush();
+				
+				GameApplication.app.models.settings.musicOn = true;
+				GameApplication.app.so.data["musicOn"] = true;
+				GameApplication.app.so.flush();
+			}
+
+
+			protected function soundOff_clickHandler(event:MouseEvent):void
+			{
+				GameApplication.app.models.settings.soundsOn = false;
+				GameApplication.app.so.data["soundsOn"] = false;
+				GameApplication.app.so.flush();
+				
+				GameApplication.app.models.settings.musicOn = false;
+				GameApplication.app.so.data["musicOn"] = false;
+				GameApplication.app.so.flush();
+			}
+			
+			protected function postScreen_clickHandler(event:MouseEvent):void
+			{
+				var _mc:* = GameApplication.app.gameContainer.scene;
+				var bmd:BitmapData = new BitmapData(_mc.width, _mc.height, true);
+				bmd.draw(_mc);
+				
+				GameApplication.app.apimanager.post("Заголовок", 'Снимок сделан в игре "Реальные гонки" (http://vk.com/rrace). Присоединяйтесь!', bmd, true);
+				
+				GameApplication.app.soundmanager.play(SoundType.CLICK);
+			}
+
+		]]>
+	</fx:Script>
+	
+	<s:Rect width="100%" height="100%">
+		<s:fill>
+			<s:SolidColor color="0x000000" alpha="0.8"/>
+		</s:fill>
+	</s:Rect>
+	
+	<s:VGroup width="100%" height="100%" gap="0" paddingTop="2">
+		<s:HGroup width="100%" gap="20" visible="{GameApplication.app.gamemanager.testMode}" includeInLayout="{GameApplication.app.gamemanager.testMode}" verticalAlign="middle">
+			<mx:Spacer width="100%"/>
+			<iconswf:IconMXML iconClass="{ArrowsMc}"/>
+			<s:Label text="Для передвижения используйте стрелки на клавиатуре!" color="0xffffff" fontSize="18"/>
+			<mx:Spacer width="100%"/>
+		</s:HGroup>
+		<s:HGroup width="100%" visible="{GameApplication.app.gamemanager.gameMode}" includeInLayout="{GameApplication.app.gamemanager.gameMode}" verticalAlign="middle">
+			<mx:Spacer width="1"/>
+			<buttonswf:ButtonMXML id="postScreen" iconClass="{PostScreenBtn}" click="postScreen_clickHandler(event)" toolTip="Сделать снимок экрана"/>
+			<mx:Spacer width="100%"/>
+			<buttonswf:ButtonMXMLExit toolTip="Выход" iconClass="{ExitBtn}" width="60" height="38" click="onExit(event)" visible="{GameApplication.app.gamemanager.gameMode}" includeInLayout="{GameApplication.app.gamemanager.gameMode}"/>
+			<mx:Spacer width="1"/>
+		</s:HGroup>
+		<s:HGroup width="100%" horizontalAlign="right" visible="{GameApplication.app.constructor.testMode}" includeInLayout="{GameApplication.app.constructor.testMode}">
+			<buttonswf:ButtonMXMLExit toolTip="Выход" iconClass="{ExitBtn}" width="60" height="38" click="onExitConstructorTest(event)"/>
+			<mx:Spacer width="1"/>
+		</s:HGroup>
+		<constructor:ConstructorPanel width="100%" visible="{GameApplication.app.constructor.constructormode}" includeInLayout="{GameApplication.app.constructor.constructormode}"/>
+		
+		<s:HGroup width="100%" height="100%" verticalAlign="middle" horizontalAlign="center" visible="{!GameApplication.app.models.settings.chatVisible}" includeInLayout="{!GameApplication.app.models.settings.chatVisible}">
+			<s:Label fontSize="12" width="100%" textAlign="center" color="0xcccccc" text="Чат скрыт. Чтобы его отобразить необходимо нажать на кнопку открытия в левом нижнем углу экрана."/>
+		</s:HGroup>
+		<s:Group width="100%" height="100%" visible="{GameApplication.app.models.settings.chatVisible}" includeInLayout="{GameApplication.app.models.settings.chatVisible}">	
+			<s:VGroup width="100%" height="100%" gap="3">
+				<mx:Spacer height="1"/>
+				<s:HGroup paddingLeft="2" paddingRight="2" paddingBottom="2" gap="3" width="100%" height="100%">
+					<useronline:UserOnlinePanel id="userspanel" width="150" height="100%" visible="false" includeInLayout="false"/>
+					<useronline:UserOnlinePanelCommon id="userspanelcommon" width="150" height="100%"/>
+					<s:VGroup id="renderAndInput" width="100%" height="100%" gap="0">
+						<s:HGroup width="100%" gap="0" visible="{!GameApplication.app.gamemanager.gameMode}" includeInLayout="{!GameApplication.app.gamemanager.gameMode}">
+							<s:Group width="100%"> 
+								<s:Rect width="100%" height="100%">
+									<s:fill>
+										<s:SolidColor color="0xff0000" alpha="0"/>
+									</s:fill>
+								</s:Rect>
+								<roomtabs:ChatRoomTabs id="chatRoomTabs" width="100%"/>
+							</s:Group>
+							<mx:Spacer width="5"/>
+							<s:HGroup id="chatButtonsGroup" verticalAlign="middle" paddingRight="2" height="10" paddingTop="1">
+								<buttonswf:ButtonMXML id="chatInfo" scale="0.9" iconClass="{InfoBtn}" toolTip="Информация" buttonMode="true" click="iconmxml1_clickHandler(event)"/>
+								<!--<iconswf:IconMXML id="soundOn" scale="0.9" iconClass="{MusicOnBtn}" toolTip="Включить музыку и звуки" buttonMode="true" click="soundOn_clickHandler(event)" visible="{!GameApplication.app.models.settings.musicOn}" includeInLayout="{!GameApplication.app.models.settings.musicOn}"/>
+								<iconswf:IconMXML id="soundOff" scale="0.9" iconClass="{MusicOffBtn}" toolTip="Выключить музыку и звуки" buttonMode="true" click="soundOff_clickHandler(event)" visible="{GameApplication.app.models.settings.musicOn}" includeInLayout="{GameApplication.app.models.settings.musicOn}"/>-->
+								<buttonswf:ButtonMXML id="chatplaystop" scale="0.9" iconClass="{StopChatBtn}" toolTip="Остановить чат" buttonMode="true" click="chatplaystop_clickHandler(event)"/>
+							</s:HGroup>
+						</s:HGroup>
+						<s:Group width="100%" height="100%">
+							<render:ChatRender id="chatrender" width="100%" height="100%"/>
+							<s:Group right="1" top="1" visible="{!GameApplication.app.gamemanager.gameMode}" includeInLayout="{!GameApplication.app.gamemanager.gameMode}">
+								<bancomponent:BanComponent/>
+							</s:Group>
+						</s:Group>
+						<mx:Spacer height="3"/>
+						<s:HGroup width="100%" height="21" verticalAlign="middle">
+							<input:InputText id="input" width="100%" height="21"/>
+							<s:HGroup verticalAlign="middle" gap="7" visible="{GameApplication.app.models.chatForUser != null}" includeInLayout="{GameApplication.app.models.chatForUser != null}">
+								<s:HGroup paddingTop="3" gap="2" verticalAlign="middle">
+									<s:Label text="для" color="0xcccccc"/>
+									<useritem:OnlineUserItem id="forUserComponent" user="{GameApplication.app.models.chatForUser}"/>									
+								</s:HGroup>
+								<buttonswf:ButtonMXML iconClass="{IconConstructorRemove}" toolTip="Отменить адресованное сообщение" click="buttonmxml1_clickHandler(event)"/>
+							</s:HGroup>
+							<buttonswf:ButtonMXML id="smilebtn" iconClass="{SmileBtn}" width="20" height="16" click="onSmiles(event)"/>
+							<button:GameButton id="sendbtn" label="отправить"/>
+							<money:Money id="mesagePrice" money="1" visible="false" includeInLayout="false"/>
+						</s:HGroup>
+					</s:VGroup>
+					<userfinishedpanel:UserFinishedPanel id="finishedpanel" width="120" height="100%" visible="{GameApplication.app.gamemanager.gameMode}" includeInLayout="{GameApplication.app.gamemanager.gameMode}"/>
+					<miniMap:MiniMapPanel id="miniMapPanel" width="200" height="100%" visible="{GameApplication.app.gamemanager.gameMode}" includeInLayout="{GameApplication.app.gamemanager.gameMode}"/>
+				</s:HGroup>
+			</s:VGroup>
+		</s:Group>		
+	</s:VGroup>
+</s:Group>

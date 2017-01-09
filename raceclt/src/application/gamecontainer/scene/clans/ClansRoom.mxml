@@ -1,0 +1,138 @@
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" implements="utils.interfaces.ISceneContent"
+		 xmlns:s="library://ns.adobe.com/flex/spark" width="100%" height="100%" initialize="onInit(event)"
+		 xmlns:mx="library://ns.adobe.com/flex/mx" xmlns:iconswf="application.components.iconswf.*" xmlns:catalog="application.gamecontainer.scene.catalog.*" xmlns:iteminfo="application.gamecontainer.scene.catalog.iteminfo.*" xmlns:bar="application.gamecontainer.scene.catalog.bar.*" xmlns:body="application.gamecontainer.scene.bag.body.*" xmlns:button="application.components.button.*" xmlns:top="application.gamecontainer.scene.top.*" xmlns:preloader="application.components.preloader.*">
+	<s:states>
+		<s:State name="loading"/>
+		<s:State name="full"/>
+		<s:State name="normal"/>
+	</s:states>
+	<fx:Script>
+		<![CDATA[
+			import application.GameApplication;
+			import application.components.popup.createclan.PopUpCreateClan;
+			import application.components.popup.help.clan.PopUpHelpClan;
+			
+			import mx.collections.ArrayCollection;
+			import mx.collections.Sort;
+			import mx.events.FlexEvent;
+			
+			import spark.events.IndexChangeEvent;
+			
+			import utils.interfaces.ISceneContent;
+			import utils.models.ClanModel;
+			import utils.parser.Parser;
+			
+			private var _sid:int = -1;
+			[Bindable]
+			private var collection:ArrayCollection = new ArrayCollection(["по опыту за день", "по общему опыту"]);
+			
+			protected function onInit(event:FlexEvent):void{
+				currentState = "loading";
+				combobox.textInput.editable = false;
+				combobox.textInput.selectable = false;
+				GameApplication.app.clanmanager.getClansInfo(addClans);
+			}		
+			
+			private function addClans(clans:Array):void{
+				Parser.parseClans(clans);
+				
+				var sort:Sort = new Sort();
+				sort.compareFunction = sortExpDay;
+				GameApplication.app.models.clans.sort = sort;
+				GameApplication.app.models.clans.refresh();
+				
+				if(clans.length == 0){
+					currentState = "full";
+				}else{
+					currentState = "normal";
+				}
+			}
+			
+			public function sortByK(e1:ClanModel, e2:ClanModel, fields:Array = null):int{
+				if(e1.k > e2.k) return -1;
+				if(e1.k < e2.k) return 1;
+				return 0;
+			}
+			public function sortExp(e1:ClanModel, e2:ClanModel, fields:Array = null):int{
+				if(e1.experience > e2.experience) return -1;
+				if(e1.experience < e2.experience) return 1;
+				return 0;
+			}
+			public function sortExpDay(e1:ClanModel, e2:ClanModel, fields:Array = null):int{
+				if(e1.expday > e2.expday) return -1;
+				if(e1.expday < e2.expday) return 1;
+				return 0;
+			}
+			
+			protected function onBack(event:MouseEvent):void{
+				GameApplication.app.navigator.goHome();
+			}
+			
+			protected function onCreate(event:MouseEvent):void{
+				GameApplication.app.popuper.show(new PopUpCreateClan());
+			}
+			
+			public function onHide():void{				
+			}
+			
+			protected function showHelp(event:MouseEvent):void
+			{
+				GameApplication.app.popuper.show(new PopUpHelpClan());
+			}
+
+			protected function combobox_changeHandler(event:IndexChangeEvent):void
+			{
+				var sort:Sort = new Sort();
+				
+				if(event.newIndex == 0){
+					clansList.itemRenderer = new ClassFactory(DayExpClanItemRenderer);
+					sort.compareFunction = sortExpDay;
+				}else{
+					clansList.itemRenderer = new ClassFactory(ClanItemRenderer);
+					sort.compareFunction = sortExp;
+				}
+				
+				GameApplication.app.models.clans.sort = sort;
+				GameApplication.app.models.clans.refresh();
+			}
+		]]>
+	</fx:Script>
+	
+	<s:Rect width="100%" height="100%">
+		<s:fill>
+			<s:SolidColor color="0x0" alpha=".8"/>
+		</s:fill>
+		<s:stroke>
+			<s:SolidColorStroke color="0xB7B7B7" weight="2"/>
+		</s:stroke>
+	</s:Rect>
+	<s:Label width="100%" top="8" textAlign="center" text="Автоклубы" fontSize="30" color="0xFFFFFF" fontWeight="bold" fontStyle="italic"/>
+	
+	<s:VGroup width="100%" height="100%" gap="0" paddingLeft="10" paddingRight="10" paddingTop="40" paddingBottom="10">
+		<s:HGroup verticalAlign="middle" width="100%" horizontalAlign="center">
+			<mx:Spacer width="130"/>
+			<s:Label height="13" width="100%" textAlign="center" textDecoration="underline" fontSize="12" color="0xFFFFCC" text="Информация о клубах" click="showHelp(event)" buttonMode="true"/>
+			<s:ComboBox id="combobox" dataProvider="{collection}" width="130" rollOverColor="0x999999" color="0xffffff" selectionColor="0xcccccc" contentBackgroundColor="0x666666" focusAlpha="0" selectedIndex="0" change="combobox_changeHandler(event)"/>
+		</s:HGroup>
+		<mx:Spacer height="10"/>
+		<preloader:PreLoaderCircle text="Загрузка клубов..." width="100%" height="100%" includeIn="loading"/>
+		<s:List id="clansList" includeIn="normal" height="100%" width="100%" 
+				contentBackgroundAlpha="0" borderVisible="false"
+				skinClass="application.gamecontainer.scene.clans.ClansListSkin"
+				dataProvider="{GameApplication.app.models.clans}"
+				itemRenderer="application.gamecontainer.scene.clans.DayExpClanItemRenderer">
+			<s:layout>
+				<s:VerticalLayout gap="5"/>
+			</s:layout>
+		</s:List>
+		<s:HGroup width="100%" height="100%" horizontalAlign="center" verticalAlign="middle" includeIn="full">
+			<s:Label fontSize="12" color="0xcccccc" text="Еще никто не создал ни одного клуба..."/>
+		</s:HGroup>
+		<mx:Spacer height="3"/>
+		<s:HGroup width="100%">
+			<button:GameButton id="create" label="создать клуб" click="onCreate(event)"/>
+			<mx:Spacer width="100%"/>
+			<button:GameButton id="back" label="назад" click="onBack(event)"/>
+		</s:HGroup>
+	</s:VGroup>
+</s:Group>

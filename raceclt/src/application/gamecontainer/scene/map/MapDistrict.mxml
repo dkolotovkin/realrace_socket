@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" implements="utils.managers.tooltip.IToolTiped, utils.selector.ISelected"
+		 xmlns:s="library://ns.adobe.com/flex/spark" rollOver="group1_rollOverHandler(event)" rollOut="group1_rollOutHandler(event)"
+		 xmlns:mx="library://ns.adobe.com/flex/mx" xmlns:iconswf="application.components.iconswf.*">
+	<s:layout>
+		<s:BasicLayout/>
+	</s:layout>
+	<fx:Script>
+		<![CDATA[
+			import spark.filters.GlowFilter;
+			
+			import utils.managers.tooltip.ToolTipType;
+			import utils.models.map.DistrictModel;
+			import utils.selector.ISelected;
+			
+			private var _glow:spark.filters.GlowFilter = new GlowFilter(0xFFFF66, 1, 5, 5, 1.5);
+			private var _glowSelected:spark.filters.GlowFilter = new GlowFilter(0xFFFF66, 1, 10, 10, 1.5);
+			
+			private var _district:DistrictModel;
+			
+			private var _over:Boolean;
+		
+			public function set over(value:Boolean):void{
+				if(_over == value)
+					return;
+				
+				_over = value;
+				
+				updateState();
+			}
+			
+			public function get over():Boolean{
+				return _over;
+			} 
+			
+			private var _selected:Boolean;
+			
+			public function set selected(value:Boolean):void{
+				if(_selected == value)
+					return;
+				
+				_selected = value;
+				
+				updateState();
+			}
+			
+			public function get selected():Boolean{
+				return _selected;
+			}
+			
+			public function get district():DistrictModel{
+				return _district;
+			} 
+
+			public function set district(value:DistrictModel):void{
+				_district = value;
+				
+				if(_district.id == DistrictModel.DISTRICT1){
+					icon.iconClass = District1;
+				}else if(_district.id == DistrictModel.DISTRICT2){
+					icon.iconClass = District2;
+				}else if(_district.id == DistrictModel.DISTRICT3){
+					icon.iconClass = District3;
+				}else if(_district.id == DistrictModel.DISTRICT4){
+					icon.iconClass = District4;
+				}else if(_district.id == DistrictModel.DISTRICT5){
+					icon.iconClass = District5;
+				}
+			}
+
+			protected function group1_rollOverHandler(event:MouseEvent):void
+			{
+				over = true;
+			}
+
+
+			protected function group1_rollOutHandler(event:MouseEvent):void
+			{
+				over = false;
+			}
+			
+			public function get toolTipDelay() : int {				
+				return 200;
+			}
+			
+			public function get toolTipDX() : int {
+				return 10;
+			}
+			
+			public function get toolTipDY() : int {
+				return 2;
+			}
+			
+			public function get toolTipType() : int {				
+				return ToolTipType.DISTRICT;
+			}
+			
+			
+			
+			private function updateState():void{
+				if(_over){
+					icon.filters = [_glow];
+				}else{
+					if(_selected){
+						icon.filters = [_glowSelected];
+					}else{
+						icon.filters = [];
+					}
+				}
+			}
+
+		]]>
+	</fx:Script>
+	<fx:Declarations>
+		<!-- Разместить невизуальные элементы (например, службы или объекты значений) -->
+	</fx:Declarations>
+	
+	<iconswf:IconMXML id="icon" buttonMode="true"/>
+</s:Group>

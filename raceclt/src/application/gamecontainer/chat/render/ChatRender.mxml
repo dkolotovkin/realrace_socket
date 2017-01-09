@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark" creationComplete="onInit(event)"
+		 xmlns:mx="library://ns.adobe.com/flex/mx">
+	<fx:Script>
+		<![CDATA[
+			import application.GameApplication;
+			
+			import flashx.textLayout.edit.SelectionFormat;
+			import flashx.textLayout.edit.SelectionManager;
+			import flashx.textLayout.elements.TextFlow;
+			
+			import mx.events.FlexEvent;
+			
+			private var _sid:int = -1;
+			private var _lastPoint:Point = new Point();
+			
+			public var needScrolling:Boolean = true;
+			private var _block:Boolean = false;
+
+			protected function onInit(event:FlexEvent):void{
+				textarea.textFlow = new TextFlow();
+				textarea.scrollToRange(int.MAX_VALUE, int.MAX_VALUE);
+				var s:SelectionFormat = new SelectionFormat(0x000000, 1, BlendMode.NORMAL, 0xffffff, 1, BlendMode.NORMAL);				
+				textarea.textFlow.interactionManager.focusedSelectionFormat = s;
+				
+//				textarea.addEventListener(MouseEvent.MOUSE_DOWN, onTextAreaDown);
+//				textarea.addEventListener(MouseEvent.MOUSE_UP, onTextAreaUp);
+//				textarea.addEventListener(MouseEvent.ROLL_OVER, onTextAreaOver);
+//				textarea.addEventListener(MouseEvent.ROLL_OUT, onTextAreaOut);
+			}
+			
+			private function onTextAreaOver(e:MouseEvent):void{
+				if (_sid != -1){
+					clearInterval(_sid);
+					_sid = -1;
+				}
+				_lastPoint.x = mouseX;
+				_lastPoint.y = mouseY;
+				needScrolling = false;
+				_sid = setInterval(on3Second, 3000);
+			}
+			
+			private function on3Second():void{
+				var dx:Number = Math.abs(_lastPoint.x - mouseX);
+				var dy:Number = Math.abs(_lastPoint.y - mouseY);
+				var d:Number = Math.sqrt(Math.pow(dx, 2) + Math.pow(dy, 2));
+				_lastPoint.x = mouseX;
+				_lastPoint.y = mouseY;
+				if(d > 5){
+					if(!_block){
+						needScrolling = false;						
+					}
+				}else{
+					if(!_block){
+						needScrolling = true;						
+					}
+				}
+			}
+			
+			private function onTextAreaOut(e:MouseEvent):void{
+				if (_sid != -1){
+					clearInterval(_sid);
+					_sid = -1;
+				}
+				needScrolling = true;
+				_block = false;
+			}
+			
+			private function onTextAreaDown(e:MouseEvent):void{
+				_block = true;
+				needScrolling = false;
+			}
+			
+			private function onTextAreaUp(e:MouseEvent):void{
+				_block = false;
+				
+				if(stage && textarea.hitTestPoint(stage.mouseX, stage.mouseY)){
+					needScrolling = false;
+				}else{
+					needScrolling = true;
+				}
+			}
+		]]>
+	</fx:Script>
+	
+	<s:Rect width="100%" height="100%">
+		<s:fill>
+			<s:SolidColor color="0x33353C" alpha=".95"/>
+		</s:fill>
+	</s:Rect>
+	<s:TextArea id="textarea" editable="false" left="2" right="2" top="2" bottom="2" width="100%" height="100%" color="0xffffff" focusEnabled="false" contentBackgroundAlpha="0" borderVisible="false" horizontalScrollPolicy="off"/>
+</s:Group>

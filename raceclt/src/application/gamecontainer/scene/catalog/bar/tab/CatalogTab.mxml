@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark"
+		 xmlns:mx="library://ns.adobe.com/flex/mx" implements="utils.selector.ISelected"
+		 buttonMode="true" 
+		 rollOver="onRollOver(event)" rollOut="onRollOut(event)" click="onClick(event)">
+	<s:states>
+		<s:State name="normal"/>
+		<s:State name="over"/>		
+	</s:states>
+	<fx:Script>
+		<![CDATA[
+			import application.GameApplication;
+			
+			import utils.models.ShopCategory;
+			import utils.selector.ISelected;
+			import utils.sound.SoundType;
+			
+			[Bindable]
+			private var _title:String;
+			private var _over:Boolean = false;
+			
+			private var _selected:Boolean;			
+			public var category:ShopCategory;			
+			
+			protected function onRollOver(event:MouseEvent):void{
+				currentState = "over";
+				_over = true;
+			}
+			protected function onRollOut(event:MouseEvent):void{
+				currentState = "normal";
+				_over = false;
+			}						
+			
+			public function init(category:ShopCategory = null):void {
+				buttonMode = true;
+				this.category = category;
+				_title = category.title;
+				updateState();
+			}
+			
+			private function onClick(event : MouseEvent) : void {
+				selected = true;
+				
+				GameApplication.app.soundmanager.play(SoundType.CLICK);
+			}
+			
+			public function get selected ():Boolean {
+				return _selected;
+			}
+			
+			public function set selected (value:Boolean):void {
+				if (_selected != value){
+					_selected = value;
+					if (_selected){
+						dispatchEvent(new CatalogTabEvent(CatalogTabEvent.SELECTED, this));
+					}else{
+						dispatchEvent(new CatalogTabEvent(CatalogTabEvent.UNSELECTED, this));
+					}
+					updateState();
+				}	
+			}			
+			
+			private function updateState ():void{
+				if (_selected) {
+					height = 25;
+				}else{
+					height = 20;
+				}
+			}
+		]]>
+	</fx:Script>
+	
+	
+	<s:Rect width="100%" height="100%" includeIn="normal" topRightRadiusX="6" topRightRadiusY="6" topLeftRadiusX="6" topLeftRadiusY="6">
+		<s:stroke>
+			<s:SolidColorStroke color="0x262626"/>
+		</s:stroke>
+		<s:fill>
+			<s:LinearGradient rotation="90">
+				<s:entries>
+					<s:GradientEntry color="0x5E5E5E" ratio="0" alpha="1"/>						
+					<s:GradientEntry color="0x151515" ratio="1" alpha="1"/>
+				</s:entries>
+			</s:LinearGradient>
+		</s:fill>
+	</s:Rect>
+	
+	<s:Rect width="100%" height="100%" includeIn="over" topRightRadiusX="6" topRightRadiusY="6" topLeftRadiusX="6" topLeftRadiusY="6">
+		<s:stroke>
+			<s:SolidColorStroke color="0x262626"/>
+		</s:stroke>
+		<s:fill>
+			<s:LinearGradient rotation="90">
+				<s:entries>
+					<s:GradientEntry color="0x626262" ratio="0" alpha="1"/>						
+					<s:GradientEntry color="0x373737" ratio="1" alpha="1"/>
+				</s:entries>
+			</s:LinearGradient>
+		</s:fill>
+	</s:Rect>
+	
+	<s:HGroup width="100%" height="100%" verticalAlign="bottom" horizontalAlign="center" left="7" right="7" bottom="5" top="5">
+		<s:Label width="100%" textAlign="center" text="{_title}" fontSize="12" color="0xffffff" fontWeight="bold"/>			
+	</s:HGroup>	
+</s:Group>

@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark" 
+		 xmlns:mx="library://ns.adobe.com/flex/mx" top="20" width="300" height="100%" xmlns:button="application.components.button.*">
+	
+	<fx:Script>
+		<![CDATA[
+			import application.GameApplication;
+			[Bindable]
+			public var text:String = "";
+			
+			protected function onClick(event:MouseEvent):void
+			{
+				GameApplication.app.apimanager.buyMoney(0);
+			}
+		]]>
+	</fx:Script>
+	
+	<s:VGroup width="100%" height="100%" horizontalAlign="center" gap="10">
+		<s:Label text="{text}" width="100%" color="0xffffff" fontSize="14" fontWeight="normal" textAlign="center"/>
+		<button:GameButton id="okbtn" label="Купить монеты" click="onClick(event)"/>
+	</s:VGroup>
+</s:Group>

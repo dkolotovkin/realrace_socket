@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:VGroup xmlns:fx="http://ns.adobe.com/mxml/2009" xmlns:chat="application.gamecontainer.chat.*" xmlns:scene="application.gamecontainer.scene.*" initialize="onInit(event)"
+		  xmlns:s="library://ns.adobe.com/flex/spark" xmlns:mx="library://ns.adobe.com/flex/mx" xmlns:gameTopBar="application.gamecontainer.gameTopBar.*" 
+		  alpha="1" width="100%" height="100%" left="5" right="5" xmlns:vklink="application.gamecontainer.vklink.*" xmlns:promotion="application.components.promotion.*" xmlns:iconswf="application.components.iconswf.*" xmlns:gamecontainer="application.gamecontainer.*" xmlns:persinfobar="application.gamecontainer.persinfobar.*" >	
+	<fx:Script>
+		<![CDATA[
+			import application.GameApplication;
+			import application.GameMode;
+			
+			import mx.events.FlexEvent;
+			
+			[Bindable]
+			private var _contentVisible:Boolean = true;
+
+			protected function onInit(event:FlexEvent):void
+			{
+			}
+			
+			public function addSmile(type:String):void{
+				chat.addSmile(type);
+			}
+			
+			public function hideSmiles():void{
+				chat.hideSmiles();
+			}
+			
+			public function set promotionMode(value:Boolean):void
+			{
+				if(GameApplication.app.config.mode != GameMode.SITE){
+					if(value)
+					{
+						GameApplication.app.height = 750;
+						promotionMouse.url = GameApplication.app.apimanager.getMouseAppUrl();
+						promotionHunters.url = GameApplication.app.apimanager.getHuntersAppUrl();
+					}else{
+						GameApplication.app.height = 650;
+					}
+				}else{
+					GameApplication.app.height = NaN;
+				}
+				promotionGroup.visible = promotionGroup.includeInLayout = value;
+			}
+			
+			public function get promotionMode():Boolean{
+				return false;
+			}
+		]]>
+	</fx:Script>
+
+	<persinfobar:GameTopBar height="25" visible="{GameApplication.app.gamemanager.gameMode}" includeInLayout="{GameApplication.app.gamemanager.gameMode}"/>
+	<mx:Spacer height="1" visible="{!GameApplication.app.gamemanager.gameMode}" includeInLayout="{!GameApplication.app.gamemanager.gameMode}"/>
+	<scene:Scene id="scene" width="100%" height="380" visible="{_contentVisible}"/>
+	<chat:Chat id="chat" width="100%" height="100%" visible="{_contentVisible}"/>
+	<s:VGroup id="promotionGroup" gap="10" width="100%" horizontalAlign="center" visible="false" includeInLayout="false">
+		<s:Label color="0xFFFFCC" text="Наши проекты" fontWeight="bold" fontSize="12"/>
+		<s:HGroup height="60" gap="20">
+			<promotion:PromotionComponent id="promotionMouse" source="{MouserunSmallBaner}" toolTip="Мышиные бега"/>
+			<promotion:PromotionComponent id="promotionHunters" source="{HuntersSmallBaner}" toolTip="Охотники против грызунов"/>
+		</s:HGroup>
+	</s:VGroup>
+	<mx:Spacer height="1"/>
+</s:VGroup>

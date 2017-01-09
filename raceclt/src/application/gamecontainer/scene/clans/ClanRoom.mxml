@@ -1,0 +1,233 @@
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" implements="utils.interfaces.ISceneContent"
+		 xmlns:s="library://ns.adobe.com/flex/spark" width="100%" height="100%" initialize="group1_initializeHandler(event)"
+		 xmlns:mx="library://ns.adobe.com/flex/mx" xmlns:iconswf="application.components.iconswf.*" xmlns:catalog="application.gamecontainer.scene.catalog.*" xmlns:iteminfo="application.gamecontainer.scene.catalog.iteminfo.*" xmlns:bar="application.gamecontainer.scene.catalog.bar.*" xmlns:body="application.gamecontainer.scene.bag.body.*" xmlns:button="application.components.button.*" xmlns:top="application.gamecontainer.scene.top.*" xmlns:preloader="application.components.preloader.*" xmlns:money="application.gamecontainer.persinfobar.money.*" xmlns:input="application.gamecontainer.chat.input.*" xmlns:clans="application.gamecontainer.scene.clans.*">
+	
+	<fx:Script>
+		<![CDATA[
+			import application.GameApplication;
+			import application.components.popup.destroyclan.PopUpDestroyWarning;
+			import application.components.popup.updateclanadvert.PopUpUpdateClanAdvert;
+			import application.gamecontainer.scene.catalog.bar.tab.CatalogTab;
+			import application.gamecontainer.scene.catalog.bar.tab.CatalogTabEvent;
+			
+			import mx.events.FlexEvent;
+			
+			import utils.interfaces.ISceneContent;
+			import utils.protocol.ProtocolKeys;
+			import utils.protocol.ProtocolValues;
+			import utils.shop.CategoryType;
+			import utils.user.ClanUserRole;
+			
+			private var _sid:int = -1;
+			private var clanId:int;
+			
+			private var time:int = -1;
+			
+			private var curentCategoryContent:int;
+			private var _selectedCategory:int;
+			
+			public function set selectedCategory(value:int):void{
+				_selectedCategory = value;
+				updateSelectedCategory();
+			}
+			
+			public function set idclan(value:int):void{
+				GameApplication.app.models.currentClan.clanId = value;
+				if(GameApplication.app.userinfomanager.myuser.claninfo.clanid == value && GameApplication.app.userinfomanager.myuser.claninfo.clanrole == ClanUserRole.OWNER){
+					GameApplication.app.models.currentClan.iisOwner = true;
+				}else{
+					GameApplication.app.models.currentClan.iisOwner = false;
+				}
+				if(GameApplication.app.userinfomanager.myuser.claninfo.clanid == value && GameApplication.app.userinfomanager.myuser.claninfo.clanrole != ClanUserRole.INVITED && 
+					GameApplication.app.userinfomanager.myuser.claninfo.clanrole != ClanUserRole.OWNER){
+					GameApplication.app.models.currentClan.iinClan = true;
+				}else{
+					GameApplication.app.models.currentClan.iinClan = false;
+				}
+				GameApplication.app.clanmanager.getClanAllInfo(onGetClanInfo, GameApplication.app.models.currentClan.clanId);
+			}
+			
+			private function onGetClanInfo(claninfo:Object):void{
+				time = claninfo[ProtocolKeys.TIME];
+				
+				clantitle.text = "Клуб " + claninfo[ProtocolKeys.CLAN_INFO][ProtocolKeys.TITLE];
+				GameApplication.app.models.currentClan.ownerTitle = claninfo[ProtocolKeys.CLAN_INFO][ProtocolKeys.OWNER_TITLE];				
+				GameApplication.app.models.currentClan.clanMoney = int(claninfo[ProtocolKeys.CLAN_INFO][ProtocolKeys.MONEY]);
+				GameApplication.app.models.currentClan.clanExperience = claninfo[ProtocolKeys.CLAN_INFO][ProtocolKeys.EXPERIENCE];
+				GameApplication.app.models.currentClan.clanDayExperience = claninfo[ProtocolKeys.CLAN_INFO][ProtocolKeys.EXP_DAY];
+				GameApplication.app.models.currentClan.clanAdvert = claninfo[ProtocolKeys.CLAN_INFO][ProtocolKeys.ADVERT];
+				
+				if(GameApplication.app.models.currentClan.iinClan){
+					if(time > 0){
+						_sid = setInterval(timeUpdate, 1000);
+						getmoney.includeInLayout = getmoney.visible = false;
+						timel.includeInLayout = timel.visible = true;
+						timelUpdate();
+					}else{
+						getmoney.includeInLayout = getmoney.visible = true;
+						timel.includeInLayout = timel.visible = false;
+					}
+				}
+				
+				if(!GameApplication.app.models.currentClan.iInClanRoom && GameApplication.app.userinfomanager.myuser.claninfo.clanid > 0 &&
+					GameApplication.app.userinfomanager.myuser.claninfo.clanid == GameApplication.app.models.currentClan.clanId &&
+					(GameApplication.app.userinfomanager.myuser.claninfo.clanrole == ClanUserRole.NO_ROLE ||
+						GameApplication.app.userinfomanager.myuser.claninfo.clanrole == ClanUserRole.ROLE1 || 
+						GameApplication.app.userinfomanager.myuser.claninfo.clanrole == ClanUserRole.ROLE2 ||
+						GameApplication.app.userinfomanager.myuser.claninfo.clanrole == ClanUserRole.ROLE3 || 
+						GameApplication.app.userinfomanager.myuser.claninfo.clanrole == ClanUserRole.ROLE4 ||
+						GameApplication.app.userinfomanager.myuser.claninfo.clanrole == ClanUserRole.ROLE5 || 
+						GameApplication.app.userinfomanager.myuser.claninfo.clanrole == ClanUserRole.OWNER)){
+					GameApplication.app.models.currentClan.iInClanRoom = true;
+					GameApplication.app.callsmanager.call(ProtocolValues.USER_IN_CLAN_ROOM, null);
+				}
+			}
+			
+			private function timeUpdate():void{
+				time--;
+				timelUpdate();
+				if(time <= 0){
+					clearInterval(_sid);
+					_sid = -1;
+					
+					getmoney.includeInLayout = getmoney.visible = true;
+					timel.includeInLayout = timel.visible = false;
+				}
+			}
+			private function timelUpdate():void{
+				var min:int = Math.floor(time / 60);
+				var sec:int = time - min * 60;
+				var min_s:String = "";
+				var sec_s:String = "";
+				
+				if(min > 0){
+					if(min < 10){
+						min_s = "0" + min + "мин ";
+					}else{
+						min_s = min + "мин ";
+					}
+				}				
+				if(sec > 0){
+					if(sec < 10){
+						sec_s = "0" + sec + "сек ";
+					}else{
+						sec_s = sec + "сек ";
+					}
+				}
+				
+				timel.text = "До зарплаты осталось: " + min_s + sec_s;
+			}
+			
+			protected function onBack(event:MouseEvent):void{
+				GameApplication.app.navigator.goClansRoom();
+				
+				if(GameApplication.app.models.currentClan.iInClanRoom && GameApplication.app.userinfomanager.myuser.claninfo.clanid > 0 &&
+					GameApplication.app.userinfomanager.myuser.claninfo.clanid == GameApplication.app.models.currentClan.clanId &&
+					(GameApplication.app.userinfomanager.myuser.claninfo.clanrole == ClanUserRole.NO_ROLE ||
+					GameApplication.app.userinfomanager.myuser.claninfo.clanrole == ClanUserRole.ROLE1 || 
+					GameApplication.app.userinfomanager.myuser.claninfo.clanrole == ClanUserRole.ROLE2 ||
+					GameApplication.app.userinfomanager.myuser.claninfo.clanrole == ClanUserRole.ROLE3 || 
+					GameApplication.app.userinfomanager.myuser.claninfo.clanrole == ClanUserRole.ROLE4 ||
+					GameApplication.app.userinfomanager.myuser.claninfo.clanrole == ClanUserRole.ROLE5 || 
+					GameApplication.app.userinfomanager.myuser.claninfo.clanrole == ClanUserRole.OWNER)){
+					GameApplication.app.models.currentClan.iInClanRoom = false;
+					GameApplication.app.callsmanager.call(ProtocolValues.USER_OUT_CLAN_ROOM, null);
+				}
+			}
+			
+			protected function onDestroy(event:MouseEvent):void{	
+				GameApplication.app.popuper.show(new PopUpDestroyWarning());
+			}
+			
+			protected function onLeave(event:MouseEvent):void{	
+				GameApplication.app.clanmanager.leave();
+			}
+			
+			protected function onReset(event:MouseEvent):void{	
+				GameApplication.app.clanmanager.reset();
+			}
+			
+			protected function onGetMoney(event:MouseEvent):void{	
+				GameApplication.app.clanmanager.getMoney();
+			}
+			
+			public function onHide():void{	
+				if (_sid !=- 1){
+					clearInterval(_sid);
+					_sid = -1;
+				}
+			}
+
+			protected function group1_initializeHandler(event:FlexEvent):void
+			{
+				tabbar.showGroups();
+				tabbar.addEventListener(CatalogTabEvent.SELECTED, onSelectCategory);
+				tabbar.addEventListener(CatalogTabEvent.UNSELECTED, onUnSelectCategory);
+				selectedCategory = CategoryType.CLAN_INFORMATION;
+				updateContentByCategory(_selectedCategory);
+			}
+			
+			private function updateSelectedCategory():void{
+				if(tabbar.hash[_selectedCategory] is CatalogTab){
+					(tabbar.hash[_selectedCategory] as CatalogTab).selected = true;					
+				}
+			}
+			
+			private function onUnSelectCategory(e:CatalogTabEvent):void{
+				contentGr.removeAllElements();
+			}
+			
+			private function onSelectCategory(e:CatalogTabEvent):void{
+				updateContentByCategory(e.tab.category.id);				
+			}
+			
+			private function updateContentByCategory(category:int):void{
+				if(category != curentCategoryContent){
+					curentCategoryContent = category;
+					if(category == CategoryType.CLAN_USER_LIST){
+						var clanUsersContent:ClanUsersContent = new ClanUsersContent();
+						contentGr.addElement(clanUsersContent);
+					}else if(category == CategoryType.CLAN_INFORMATION){
+						var infoContent:ClanInfoContent = new ClanInfoContent();
+						contentGr.addElement(infoContent);
+					}else if(category == CategoryType.CLAN_ADVERT){
+						contentGr.addElement(new ClanAdvertContent());
+					}
+				}
+			}
+
+			protected function updateAdvert_clickHandler(event:MouseEvent):void
+			{
+				GameApplication.app.popuper.show(new PopUpUpdateClanAdvert());
+			}
+
+		]]>
+	</fx:Script>
+	
+	<s:Rect width="100%" height="100%">
+		<s:fill>
+			<s:SolidColor color="0x0" alpha=".8"/>
+		</s:fill>
+		<s:stroke>
+			<s:SolidColorStroke color="0xB7B7B7" weight="2"/>
+		</s:stroke>
+	</s:Rect>
+	<s:Label id="clantitle" width="100%" top="8" textAlign="center" text="Автоклубы" fontSize="30" color="0xFFFFFF" fontWeight="bold" fontStyle="italic"/>
+	
+	<s:VGroup width="100%" height="100%" gap="0" paddingLeft="10" paddingRight="10" paddingTop="40" paddingBottom="10">
+		<clans:ClanRoomBar id="tabbar" height="25" gap="0" width="100%"/>
+		<mx:Spacer height="10"/>
+		<s:Group id="contentGr" width="100%" height="100%"/>
+		<mx:Spacer height="10"/>
+		<s:HGroup width="100%" verticalAlign="middle">
+			<button:GameButton id="destroy" label="распустить клуб" click="onDestroy(event)" includeInLayout="{GameApplication.app.models.currentClan.iisOwner}" visible="{GameApplication.app.models.currentClan.iisOwner}"/>
+			<button:GameButton id="reset" label="сбросить показатели" click="onReset(event)" includeInLayout="{GameApplication.app.models.currentClan.iisOwner}" visible="{GameApplication.app.models.currentClan.iisOwner}"/>
+			<button:GameButton id="updateAdvert" label="дать объявление" click="updateAdvert_clickHandler(event)" includeInLayout="{GameApplication.app.models.currentClan.iisOwner}" visible="{GameApplication.app.models.currentClan.iisOwner}"/>
+			<button:GameButton id="leave" label="покинуть клуб" click="onLeave(event)" includeInLayout="{GameApplication.app.models.currentClan.iinClan}" visible="{GameApplication.app.models.currentClan.iinClan}"/>
+			<button:GameButton id="getmoney" label="забрать зарплату" click="onGetMoney(event)" includeInLayout="{GameApplication.app.models.currentClan.iinClan}" visible="{GameApplication.app.models.currentClan.iinClan}"/>
+			<s:Label id="timel" color="0xffffff" fontSize="12" fontWeight="normal" includeInLayout="{GameApplication.app.models.currentClan.iinClan}" visible="{GameApplication.app.models.currentClan.iinClan}"/>
+			<mx:Spacer width="100%"/>
+			<button:GameButton id="back" label="назад" click="onBack(event)"/>
+		</s:HGroup>
+	</s:VGroup>
+</s:Group>

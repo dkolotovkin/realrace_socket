@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark" initialize="group1_initializeHandler(event)"
+		 xmlns:mx="library://ns.adobe.com/flex/mx" top="35" width="100%" height="100%" xmlns:button="application.components.button.*" xmlns:money="application.gamecontainer.persinfobar.money.*" xmlns:iconswf="application.components.iconswf.*" xmlns:second="application.components.popup.help.tutorial.second.*">
+	<fx:Script>
+		<![CDATA[
+			import application.GameApplication;
+			
+			import mx.events.FlexEvent;
+			
+			import utils.chat.Flasher;
+			import utils.game.action.GameType;
+			import utils.models.car.CarId;
+			import utils.models.map.DistrictModel;
+			
+			private var flasher:Flasher;
+
+			protected function group1_initializeHandler(event:FlexEvent):void
+			{
+				flasher = new Flasher(btnGame);
+				flasher.start(500, int.MAX_VALUE);
+			}
+
+
+			protected function btnGame_clickHandler(event:MouseEvent):void
+			{
+				flasher.stop();
+				GameApplication.app.popuper.hidePopUp();
+				
+				var users:Array = new Array();
+				users.push(GameApplication.app.userinfomanager.myuser.id);
+				
+				var cars:Array = new Array();
+				cars.push(GameApplication.app.models.cars.getCarPrototypeById(CarId.VAZ_2110));
+				
+				var colors:Array = new Array();
+				colors.push(0xffffff);
+				
+				GameApplication.app.gamemanager.gameworld = GameApplication.app.navigator.goGameWorld(1024, DistrictModel.DISTRICT4, users, cars, colors, GameType.TEST_TUTORIAL);
+				GameApplication.app.gamemanager.gameworld.removeRoundTimer();
+				GameApplication.app.gamemanager.gameworld.keyBoardReaction = true;
+				
+				GameApplication.app.gamemanager.testMode = true;
+			}
+		]]>
+	</fx:Script>
+	<s:VGroup width="100%" height="100%">
+		<s:HGroup width="100%" height="100%" gap="10" verticalAlign="top">
+			<s:Group width="120" height="150">
+				<iconswf:IconMXML iconClass="{Avatar1Mc}"/>			
+			</s:Group>
+			<s:VGroup width="100%" height="100%" horizontalAlign="center">
+				<s:Label text="Для начала научимся управлять автомобилем! Ваша главная задача - доехать до финиша. Для того, чтобы начать гонку, нажмите на кнопку «В заезд». В игре она находится в правой нижней части экрана." width="320" paddingTop="5" color="0xFF9933" fontSize="14" fontWeight="normal"/>
+				<second:FlashingButtonMXML id="btnGame" iconClass="{IconButPlay}" click="btnGame_clickHandler(event)"/>
+			</s:VGroup>
+		</s:HGroup>
+	</s:VGroup>
+</s:Group>
+

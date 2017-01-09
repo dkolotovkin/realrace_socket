@@ -1,0 +1,98 @@
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" implements="utils.interfaces.ISceneContent"
+		 xmlns:s="library://ns.adobe.com/flex/spark" width="100%" height="100%" initialize="onInit(event)"
+		 xmlns:mx="library://ns.adobe.com/flex/mx" xmlns:iconswf="application.components.iconswf.*" xmlns:catalog="application.gamecontainer.scene.catalog.*" xmlns:iteminfo="application.gamecontainer.scene.catalog.iteminfo.*" xmlns:bar="application.gamecontainer.scene.catalog.bar.*" xmlns:body="application.gamecontainer.scene.bag.body.*" xmlns:button="application.components.button.*" xmlns:myroom="application.gamecontainer.scene.myroom.*" xmlns:bag="application.gamecontainer.scene.bag.*">
+	<fx:Script>
+		<![CDATA[
+			import application.GameApplication;
+			import application.components.popup.saleall.PopUpSaleAll;
+			import application.gamecontainer.scene.catalog.bar.tab.CatalogTab;
+			import application.gamecontainer.scene.catalog.bar.tab.CatalogTabEvent;
+			
+			import mx.binding.utils.ChangeWatcher;
+			import mx.events.FlexEvent;
+			
+			import utils.interfaces.ISceneContent;
+			import utils.shop.CategoryType;
+			
+			private var _selectedCategory:int;
+			private var _curentCategoryContent:int;
+			
+			private var watcher:ChangeWatcher;
+			
+			public function set selectedCategory(value:int):void{
+				_selectedCategory = value;
+				updateSelectedCategory();
+			}
+			
+			private function updateSelectedCategory():void{
+				if(tabbar.hash[_selectedCategory] is CatalogTab){
+					(tabbar.hash[_selectedCategory] as CatalogTab).selected = true;					
+				}
+			}
+			
+			protected function onInit(event:FlexEvent):void
+			{
+				tabbar.showGroups();
+				tabbar.addEventListener(CatalogTabEvent.SELECTED, onSelectCategory);
+				tabbar.addEventListener(CatalogTabEvent.UNSELECTED, onUnSelectCategory);
+				updateSelectedCategory();
+				updateContentByCategory(_selectedCategory);
+			}
+			
+			private function onUnSelectCategory(e:CatalogTabEvent):void{
+				contentGr.removeAllElements()
+			}
+			
+			private function onSelectCategory(e:CatalogTabEvent):void{
+				updateContentByCategory(e.tab.category.id);				
+			}
+			
+			private function updateContentByCategory(category:int):void{
+				if(category != _curentCategoryContent){
+					_curentCategoryContent = category;
+					if(category == CategoryType.PRESENTS){
+						contentGr.addElement(new PresentsContent());						
+						saleAllGr.visible = saleAllGr.includeInLayout = true;
+					}
+				}
+			}
+			
+			protected function onBack(event:MouseEvent):void{
+				GameApplication.app.navigator.goHome();
+			}
+			
+			public function onHide():void{
+			}			
+
+			protected function buyall_clickHandler(event:MouseEvent):void
+			{
+				GameApplication.app.popuper.show(new PopUpSaleAll());
+			}
+
+		]]>
+	</fx:Script>
+	
+	<s:Rect width="100%" height="100%">
+		<s:fill>
+			<s:RadialGradient>
+				<s:entries>
+					<s:GradientEntry color="0x000000" ratio="0.00" alpha="1"/>
+					<s:GradientEntry color="0x020F0F" ratio="1" alpha="1"/> 
+				</s:entries>
+			</s:RadialGradient>
+		</s:fill>
+	</s:Rect>
+	
+	<s:VGroup width="100%" height="100%" paddingLeft="70" paddingRight="70" paddingTop="35" paddingBottom="35">		
+		<s:Label width="100%" textAlign="center" text="Рюкзак" fontSize="30" color="0xFFEB3C" fontWeight="bold" fontStyle="italic"/>
+		
+		<bag:BagBar id="tabbar" height="25" gap="0" width="100%"/>
+		<s:Group id="contentGr" width="100%" height="100%"/>
+		<s:HGroup width="100%">
+			<button:GameButton id="back" label="назад" click="onBack(event)"/>
+			<s:Group id="saleAllGr">
+				<button:GameButton id="saleAll" label="продать все" click="buyall_clickHandler(event)" visible="{GameApplication.app.models.userPresents.collection.length > 0}"/>				
+			</s:Group>
+		</s:HGroup>
+	</s:VGroup>
+</s:Group>

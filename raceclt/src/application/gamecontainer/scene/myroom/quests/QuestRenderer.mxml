@@ -1,0 +1,199 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:ItemRenderer xmlns:fx="http://ns.adobe.com/mxml/2009" rollOver="itemrenderer1_rollOverHandler(event)" rollOut="itemrenderer1_rollOutHandler(event)"
+				xmlns:s="library://ns.adobe.com/flex/spark" autoDrawBackground="false" removedFromStage="itemrenderer1_removedFromStageHandler(event)"
+				xmlns:mx="library://ns.adobe.com/flex/mx" width="100%" xmlns:article="application.gamecontainer.scene.catalog.article.*">
+	<s:layout>
+		<s:BasicLayout/>
+	</s:layout>
+	<fx:Script>
+		<![CDATA[
+			import application.GameApplication;
+			import application.components.button.GameButton;
+			
+			import flashx.textLayout.formats.TextAlign;
+			import flashx.textLayout.formats.TextDecoration;
+			
+			import mx.binding.utils.BindingUtils;
+			import mx.binding.utils.ChangeWatcher;
+			
+			import utils.models.Models;
+			import utils.models.item.Item;
+			import utils.models.quests.Quest;
+			import utils.models.quests.QuestStatus;
+			import utils.protocol.ProtocolKeys;
+			import utils.protocol.ProtocolValues;
+			
+			[Bindable]
+			private var bgvisible:Boolean;
+			
+			private var quest:Quest;
+			
+			private var counterWatcher:ChangeWatcher;
+			private var currentQuestWatcher:ChangeWatcher;
+			private var statusWatcher:ChangeWatcher;
+			
+			override public function set data(value:Object):void{
+				super.data = value;
+				
+				if(counterWatcher){
+					counterWatcher.unwatch();
+				}
+				
+				if(currentQuestWatcher){
+					currentQuestWatcher.unwatch();
+				}
+				
+				if(statusWatcher){
+					statusWatcher.unwatch();
+				}
+				
+				while(statusActionsGroup.numChildren){
+					statusActionsGroup.removeElementAt(0);
+				}
+				
+				quest = value as Quest;				
+				if(quest){
+					questDescription.text = quest.description;
+					levelLbl.text = "c " + quest.minLevel + " уровня";
+					
+					article.init(Item.createFromItemPrototype(GameApplication.app.models.itemPrototypes.getModelById(quest.prize)));
+					
+					updateActionOrStatus();
+					updateCounter();
+					
+					counterWatcher = BindingUtils.bindSetter(onChangeCurrentValue, quest, "currentValue");
+					statusWatcher = BindingUtils.bindSetter(onChangeStatus, quest, "status");
+					currentQuestWatcher = BindingUtils.bindSetter(onChangeCurrentQuest, GameApplication.app.models.questsModel, "currentQuest");
+				}
+			}
+			
+			private function onChangeCurrentValue(value:int):void{
+				updateCounter();
+			}
+			
+			private function onChangeStatus(value:int):void{
+				updateActionOrStatus();
+				updateCounter();
+			}
+			
+			private function onChangeCurrentQuest(value:Quest):void{
+				updateActionOrStatus();
+				updateCounter();
+			}
+			
+			private function updateActionOrStatus():void{
+				statusActionsGroup.removeAllElements();
+				
+				if(quest.status == QuestStatus.COMLETED){
+					
+					var statusComplete:Label = new Label();
+					statusComplete.setStyle("color", 0x00FF00);
+					statusComplete.text = "выполнено";
+					statusActionsGroup.addElement(statusComplete);
+				}else if (quest.status == QuestStatus.PERFORMED){					
+					if(quest.currentValue < quest.value){
+						var cancelButton:GameButton = new GameButton();
+						cancelButton.label = "отказаться";
+						cancelButton.width = 80;
+						cancelButton.addEventListener(MouseEvent.CLICK, onCancelQuest, false, 0, true);
+						statusActionsGroup.addElement(cancelButton);
+					}else{
+						var passButton:GameButton = new GameButton();
+						passButton.label = "сдать";
+						passButton.width = 80;
+						passButton.addEventListener(MouseEvent.CLICK, onPassQuest, false, 0, true);
+						statusActionsGroup.addElement(passButton);
+					}
+				}else if (quest.status == QuestStatus.UNDEFINED || quest.status == QuestStatus.IN_WAIT){
+					if(GameApplication.app.userinfomanager.myuser.level < quest.minLevel){
+						var statusNoAvaliable:Label = new Label();
+						statusNoAvaliable.setStyle("color", 0xFF0000);
+						statusNoAvaliable.text = "недоступно";
+						statusNoAvaliable.toolTip = "Доступно с " + quest.minLevel + " уровня";
+						statusActionsGroup.addElement(statusNoAvaliable);
+					}else{
+						if(GameApplication.app.models.questsModel.currentQuest){
+							var statusTempNoAvaliable:Label = new Label();
+							statusTempNoAvaliable.setStyle("color", 0xcccccc);
+							statusTempNoAvaliable.setStyle("textAlign", TextAlign.CENTER);
+							statusTempNoAvaliable.text = "временно\nнедоступно";
+							statusTempNoAvaliable.toolTip = "Необходимо завершить (сдать или отказаться) текущее задание"
+							statusActionsGroup.addElement(statusTempNoAvaliable);
+						}else{
+							var executeButton:GameButton = new GameButton();
+							executeButton.label = "выполнить";
+							executeButton.width = 80;
+							executeButton.addEventListener(MouseEvent.CLICK, onExecuteQuest, false, 0, true);
+							statusActionsGroup.addElement(executeButton);
+						}
+					}
+				}
+			}
+			
+			private function updateCounter():void{
+				if(quest.status == QuestStatus.COMLETED){
+					countLbl.text = quest.value + "/" + quest.value;
+				}else if (quest.status == QuestStatus.PERFORMED){
+					countLbl.text = Math.min(quest.currentValue, quest.value) + "/" + quest.value;
+				}else if (quest.status == QuestStatus.UNDEFINED || quest.status == QuestStatus.IN_WAIT){
+					countLbl.text = 0 + "/" + quest.value;
+				}
+			}
+			
+			private function onCancelQuest(e:MouseEvent):void{
+				GameApplication.app.questsmanager.cancelQuest();
+			}
+			
+			private function onPassQuest(e:MouseEvent):void{
+				GameApplication.app.questsmanager.passQuest();
+			}
+			
+			private function onExecuteQuest(e:MouseEvent):void{
+				if(quest){
+					GameApplication.app.questsmanager.getQuest(quest);
+				}
+			}
+
+			protected function itemrenderer1_rollOverHandler(event:MouseEvent):void
+			{
+				bgvisible = true;
+			}
+
+
+			protected function itemrenderer1_rollOutHandler(event:MouseEvent):void
+			{
+				bgvisible = false;
+			}
+
+
+			protected function itemrenderer1_removedFromStageHandler(event:Event):void
+			{
+				if(counterWatcher){
+					counterWatcher.unwatch();
+				}
+				
+				if(currentQuestWatcher){
+					currentQuestWatcher.unwatch();
+				}
+				
+				if(statusWatcher){
+					statusWatcher.unwatch();
+				}
+			}
+
+		]]>
+	</fx:Script>
+	<s:Rect width="100%" height="100%" visible="{bgvisible}">
+		<s:fill>
+			<s:SolidColor color="0xffffff" alpha=".2"/>
+		</s:fill>
+	</s:Rect>
+	
+	<s:HGroup width="100%" paddingLeft="20" paddingRight="10" verticalAlign="middle">
+		<s:Label id="questDescription" width="100%" color="0xffffff"/>
+		<s:Label id="countLbl" width="50" color="0xcccccc" toolTip="количество выполненных/общее количество" textAlign="center"/>
+		<s:VGroup id="statusActionsGroup" width="80" height="100%" horizontalAlign="center" verticalAlign="middle"/>
+		<s:Label id="levelLbl" width="80" color="0xcccccc" textAlign="center"/>
+		<article:QuestArticle id="article"/>
+	</s:HGroup>
+</s:ItemRenderer>

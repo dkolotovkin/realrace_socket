@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:ItemRenderer xmlns:fx="http://ns.adobe.com/mxml/2009" 
+				xmlns:s="library://ns.adobe.com/flex/spark" rollOver="itemrenderer1_rollOverHandler(event)" rollOut="itemrenderer1_rollOutHandler(event)"
+				xmlns:mx="library://ns.adobe.com/flex/mx" buttonMode="true" implements="utils.managers.tooltip.IToolTiped"
+				autoDrawBackground="false" xmlns:article="application.gamecontainer.scene.catalog.article.*" xmlns:money="application.gamecontainer.persinfobar.money.*">
+	<fx:Script>
+		<![CDATA[
+			import utils.managers.tooltip.ToolTipType;
+			import utils.models.ItemPrototype;
+			import utils.models.item.Item;
+			import utils.shop.CategoryType;
+			
+			override public function set selected(value:Boolean):void{
+				super.selected = value;
+				if(value)
+					article.currentState = "selected";
+				else
+					article.currentState = "normal";
+			}
+			
+			override public function set data(value:Object):void{
+				super.data = value;
+				
+				var prototype:ItemPrototype = value as ItemPrototype;
+				if(prototype){	
+					toolTip = prototype.title;
+					
+					article.init(Item.createFromItemPrototype(prototype));
+					
+					if(prototype.priceReal > 0){
+						moneyrealcomp.visible = moneyrealcomp.includeInLayout = true;
+						moneycomp.visible = moneycomp.includeInLayout = false;
+						moneyrealcomp.moneyReal = prototype.priceReal;
+					}else{
+						moneyrealcomp.visible = moneyrealcomp.includeInLayout = false;
+						moneycomp.visible = moneycomp.includeInLayout = true;
+						moneycomp.money = prototype.price;
+					}
+				}
+			}
+			
+			protected function itemrenderer1_rollOverHandler(event:MouseEvent):void
+			{
+				if(!selected)
+					article.currentState = "over";				
+			}
+			
+			
+			protected function itemrenderer1_rollOutHandler(event:MouseEvent):void
+			{
+				if(!selected)
+					article.currentState = "normal";
+			}
+			
+			public function get toolTipDelay() : int {
+				return 400;
+			}
+			
+			public function get toolTipDX() : int {
+				return 10;
+			}
+			
+			public function get toolTipDY() : int {
+				return 2;
+			}
+			
+			public function get toolTipType() : int {				
+				return ToolTipType.SIMPLE;
+			}			
+		]]>
+	</fx:Script>	
+	<s:VGroup width="100%" height="100%">
+		<article:Article id="article"/>
+		<money:Money id="moneycomp"/>
+		<money:MoneyReal id="moneyrealcomp"/>		
+	</s:VGroup>
+</s:ItemRenderer>

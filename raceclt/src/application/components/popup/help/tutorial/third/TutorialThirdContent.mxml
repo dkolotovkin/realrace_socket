@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark"
+		 xmlns:mx="library://ns.adobe.com/flex/mx" top="35" width="100%" height="100%" xmlns:button="application.components.button.*" xmlns:money="application.gamecontainer.persinfobar.money.*" xmlns:iconswf="application.components.iconswf.*">
+	<fx:Script>
+		<![CDATA[
+			import application.GameApplication;
+			import application.GameMode;
+			import application.components.popup.help.tutorial.second.PopUpTutorialSecond;
+			import application.gamecontainer.scene.catalog.article.LibraryMovieClass;
+			
+			import flashx.textLayout.edit.SelectionFormat;
+			
+			import mx.events.FlexEvent;
+			
+			import spark.events.TextOperationEvent;
+			
+			import utils.models.car.CarId;
+			
+			override protected function createChildren():void{
+				super.createChildren();
+				
+				var carMcClass:Class = LibraryMovieClass.getCarClassByCarPrototypeID(CarId.VAZ_2110);
+				var carMc:MovieClip = new carMcClass();
+				carUI.addChild(carMc);
+				
+				carUI.width = carMc.width;
+				carUI.height = carMc.height;
+			}
+			
+			protected function nextBtn_clickHandler(event:MouseEvent):void
+			{
+				GameApplication.app.popuper.hidePopUp();
+			}
+			
+		]]>
+	</fx:Script>
+	<s:VGroup horizontalAlign="center" gap="0">
+		<s:HGroup width="100%" height="100%" gap="10" verticalAlign="top">
+			<s:Group width="120" height="150">
+				<iconswf:IconMXML iconClass="{Avatar1Mc}"/>			
+			</s:Group>
+			<s:Label text="У вас отлично получается! Теперь вы готовы к реальным гонкам! Для того, чтобы участвовать в заездах, вам понадобится автомобиль. Мы дарим вам первый автомобиль(Ваз 2110) и карту на его бесплатное обслуживание. На остальные автомобили придется зарабатывать, учавствуя в гонках. Удачи в заездах!" width="350" paddingTop="5" color="0xFF9933" fontSize="14" fontWeight="normal"/>
+		</s:HGroup>
+		<mx:UIComponent id="carUI"/>
+		<mx:Spacer height="5"/>
+		<s:HGroup width="100%" verticalAlign="middle" horizontalAlign="right">				
+			<button:GameButton id="nextBtn" label="в игру" click="nextBtn_clickHandler(event)"/>
+		</s:HGroup>
+	</s:VGroup>
+</s:Group>

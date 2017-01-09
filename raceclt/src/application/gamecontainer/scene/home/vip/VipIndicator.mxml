@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" addedToStage="group1_addedToStageHandler(event)" removedFromStage="group1_removedFromStageHandler(event)"
+		 xmlns:s="library://ns.adobe.com/flex/spark" initialize="group1_initializeHandler(event)" implements="utils.managers.tooltip.IToolTiped"
+		 xmlns:mx="library://ns.adobe.com/flex/mx" width="35" height="30" buttonMode="true">
+	<s:layout>
+		<s:BasicLayout/>
+	</s:layout>
+	<fx:Script>
+		<![CDATA[
+			import application.GameApplication;
+			
+			import mx.binding.utils.BindingUtils;
+			import mx.binding.utils.ChangeWatcher;
+			import mx.events.FlexEvent;
+			import mx.events.PropertyChangeEvent;
+			
+			import utils.managers.tooltip.ToolTipType;
+			import utils.user.VipType;
+			
+			private var watcher:ChangeWatcher;
+
+			protected function group1_initializeHandler(event:FlexEvent):void
+			{
+			}
+
+			protected function group1_addedToStageHandler(event:Event):void
+			{
+				watcher && watcher.unwatch();
+				watcher = ChangeWatcher.watch(GameApplication.app.userinfomanager.myuser, "vip", onChangeVip);
+				updateVip();
+			}
+			
+			private function onChangeVip(e:PropertyChangeEvent):void{
+				updateVip();
+			}
+			
+			private function updateVip():void{
+				while(vipUI.numChildren){
+					vipUI.removeChildAt(0);
+				}
+				
+				width = 35;
+
+				var vipMc:MovieClip;
+				if(GameApplication.app.userinfomanager.myuser.vip == VipType.VIP_BRONZE){
+					vipMc = new VipBronze();
+				}else if(GameApplication.app.userinfomanager.myuser.vip == VipType.VIP_SILVER){
+					vipMc = new VipSilver();
+				}else if(GameApplication.app.userinfomanager.myuser.vip == VipType.VIP_GOLD){
+					vipMc = new VipGold();
+				}else{
+					width = 0;
+				}
+				
+				if(vipMc){
+					vipMc.width = vipUI.width;
+					vipMc.height = vipUI.height;
+					
+					vipUI.addChild(vipMc);
+				}
+			}
+
+			protected function group1_removedFromStageHandler(event:Event):void
+			{
+				watcher && watcher.unwatch();
+			}
+			
+			public function get toolTipDelay() : int {				
+				return 400;
+			}
+			
+			public function get toolTipDX() : int {
+				return 10;
+			}
+			
+			public function get toolTipDY() : int {
+				return 2;
+			}
+			
+			public function get toolTipType() : int {
+				return ToolTipType.VIP_INDICATOR;
+			}
+
+		]]>
+	</fx:Script>
+	<mx:UIComponent id="vipUI" width="30" height="30"/>
+</s:Group>

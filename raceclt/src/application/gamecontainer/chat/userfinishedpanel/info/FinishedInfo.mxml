@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark" 
+		 xmlns:mx="library://ns.adobe.com/flex/mx" width="100%" height="20">
+	<fx:Script>
+		<![CDATA[
+			public function init(p:int, title:String):void{
+				position.text = p + ".";
+				usertitle.text = title;
+			}
+		]]>
+	</fx:Script>
+	<s:HGroup verticalAlign="bottom" gap="2">
+		<s:Label id="position" color="0xffffff" fontSize="14"/>
+		<s:Label id="usertitle" color="0x00FF00" fontSize="12" maxWidth="100" height="13"/>
+	</s:HGroup>
+</s:Group>

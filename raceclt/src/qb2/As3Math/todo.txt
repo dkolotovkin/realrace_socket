@@ -1,0 +1,47 @@
+
+- make a contains function for polygon
+
+- test curve splitting
+
+- test subcurve thing and getsplitCurves for polyline
+
+- copy/paste/reuse code from polygon for polyline
+
+
+
+
+IN THE FUTURE
+
+- have grid consider infinite lines and rays
+
+- implement circle and arc classes
+
+- make ellipse class
+
+- implement bound circle class
+
+- possibly move some functions in boundbox up to the abstract class so bound circle implements them too
+
+- implement a plane class
+
+- have a planar entity base class (?)
+
+- implement area function for polyline
+
+- draw as spline for polyline
+
+- implement matrix class and implenent transformBy for point and vector
+
+- clean up grid class
+
+- implement getIntersection for bound box
+
+- get boundBox for polygon class...also have contains/intersects functions.
+
+
+
+
+
+
+
+

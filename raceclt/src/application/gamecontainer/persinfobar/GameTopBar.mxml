@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		  xmlns:s="library://ns.adobe.com/flex/spark" initialize="onInit(event)" 
+		  xmlns:mx="library://ns.adobe.com/flex/mx" width="100%" height="25" xmlns:experience="application.gamecontainer.persinfobar.experience.*" xmlns:energy="application.gamecontainer.persinfobar.energy.*" xmlns:time="application.gamecontainer.persinfobar.time.*" xmlns:money="application.gamecontainer.persinfobar.money.*" xmlns:popular="application.gamecontainer.persinfobar.popular.*" xmlns:iconswf="application.components.iconswf.*" xmlns:buttonswf="application.components.buttonswf.*">
+
+	<fx:Script>
+		<![CDATA[
+			import application.GameApplication;
+			import application.GameMode;
+			import application.components.popup.buymoney.PopUpBuyMoney;
+			import application.components.popup.help.experience.PopUpHelpExperience;
+			import application.components.popup.help.popular.PopUpHelpPopular;
+			
+			import flashx.textLayout.formats.TextDecoration;
+			
+			import mx.events.FlexEvent;
+			
+			import spark.filters.GlowFilter;
+			
+			import utils.game.GameManagerEvent;
+			import utils.managers.persinfo.UserInfoManager;
+			import utils.sound.SoundType;
+			import utils.time.TimeUtils;
+			
+			private var _gf:spark.filters.GlowFilter = new GlowFilter(0x000000, 1, 10, 10, 1);			
+
+			protected function onInit(event:FlexEvent):void
+			{
+				nick.filters = [_gf];
+				level.filters = [_gf];
+				lapsLbl.filters = [_gf];
+				GameApplication.app.gamemanager.addEventListener(GameManagerEvent.TIMER_UPDATE, onTimeUpdate);
+			}			
+			
+			private function onTimeUpdate(e:GameManagerEvent):void{				
+				timeindicator.time = TimeUtils.getGameTime(e.value);
+			}
+
+			protected function nick_rollOverHandler(event:MouseEvent):void
+			{
+				nick.setStyle("textDecoration", TextDecoration.UNDERLINE);
+			}
+
+
+			protected function nick_rollOutHandler(event:MouseEvent):void
+			{
+				nick.setStyle("textDecoration", TextDecoration.NONE);
+			}
+
+
+			protected function nick_clickHandler(event:MouseEvent):void
+			{
+				GameApplication.app.userinfomanager.showchangeInfo();
+				
+				GameApplication.app.soundmanager.play(SoundType.CLICK);
+			}
+
+			protected function label1_rollOverHandler(event:MouseEvent):void
+			{
+				(event.target as Label).setStyle("textDecoration", TextDecoration.UNDERLINE);
+			}
+
+			protected function label1_rollOutHandler(event:MouseEvent):void
+			{
+				(event.target as Label).setStyle("textDecoration", TextDecoration.NONE);
+			}
+		]]>
+	</fx:Script>
+
+	<s:Rect width="100%" height="100%" bottomLeftRadiusX="8" bottomLeftRadiusY="8" bottomRightRadiusX="8" bottomRightRadiusY="8">		
+		<s:fill>
+			<s:LinearGradient rotation="90">
+				<s:entries>
+					<s:GradientEntry color="0x030303" ratio="0.00" alpha="1"/>					
+					<s:GradientEntry color="0x464646" ratio="0.99" alpha="1"/>
+				</s:entries>
+			</s:LinearGradient>
+		</s:fill>
+	</s:Rect>
+	<s:HGroup width="100%" height="100%" verticalAlign="middle" left="10" right="10" gap="0">
+		<s:Label id="nick" toolTip="Параметры персонажа" buttonMode="true" text="{GameApplication.app.userinfomanager.myuser.title}" maxWidth="130" height="13" color="0xffffff" fontSize="14" fontWeight="normal" click="nick_clickHandler(event)" rollOver="nick_rollOverHandler(event)" rollOut="nick_rollOutHandler(event)"/>
+		<s:Label id="level" toolTip="Уровень" text="[{GameApplication.app.userinfomanager.myuser.level}]" height="13" color="0x00FFFF" fontSize="14" fontWeight="normal"/>
+		<mx:Spacer width="10"/>
+		<s:Label id="mapLbl" width="100%" textAlign="center" text="Карта: {GameApplication.app.models.gameModel.mapID}" color="0xffffff" fontSize="14" fontWeight="bold" />
+		<s:Label id="lapsLbl" width="100%" textAlign="center" text="Круги: {GameApplication.app.models.gameModel.currentLap} / {GameApplication.app.models.gameModel.laps}" color="0xffffff" fontSize="14" fontWeight="bold" />
+		<time:TimeIndicator id="timeindicator" toolTip="Время до окончания раунда" visible="{GameApplication.app.gamemanager.gameMode}" includeInLayout="{GameApplication.app.gamemanager.gameMode}"/>
+	</s:HGroup>
+</s:Group>

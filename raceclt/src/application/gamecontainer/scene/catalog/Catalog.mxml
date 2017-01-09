@@ -1,0 +1,230 @@
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" implements="utils.interfaces.ISceneContent" addedToStage="group1_addedToStageHandler(event)" removedFromStage="group1_removedFromStageHandler(event)"	 
+		 xmlns:s="library://ns.adobe.com/flex/spark" width="100%" height="100%" creationComplete="onInit(event)"
+		 xmlns:mx="library://ns.adobe.com/flex/mx" xmlns:iconswf="application.components.iconswf.*" xmlns:catalog="application.gamecontainer.scene.catalog.*" xmlns:iteminfo="application.gamecontainer.scene.catalog.iteminfo.*" xmlns:bar="application.gamecontainer.scene.catalog.bar.*" xmlns:separator="application.components.separator.*" xmlns:button="application.components.button.*" xmlns:darkshop="application.gamecontainer.scene.catalog.darkshop.*" xmlns:preloader="application.components.preloader.*">
+	<fx:Script>
+		<![CDATA[
+			import application.GameApplication;
+			import application.components.popup.buyconfirm.PopUpBuyConfirm;
+			import application.components.popup.rentCar.PopUpRentCar;
+			import application.gamecontainer.scene.catalog.article.catalog.CatalogArticleRenderer;
+			import application.gamecontainer.scene.catalog.article.catalog.CatalogCarArticleRenderer;
+			import application.gamecontainer.scene.catalog.article.catalog.CatalogRentCarRenderer;
+			import application.gamecontainer.scene.catalog.bar.tab.CatalogTabEvent;
+			
+			import mx.collections.ListCollectionView;
+			import mx.events.CollectionEvent;
+			import mx.events.FlexEvent;
+			
+			import spark.events.IndexChangeEvent;
+			
+			import utils.interfaces.ISceneContent;
+			import utils.log.Log;
+			import utils.models.ItemPrototype;
+			import utils.models.car.CarModel;
+			import utils.models.car.CarPrototypeModel;
+			import utils.shop.CategoryType;
+			
+			private var selectedCategory:int;
+
+			protected function onInit(event:FlexEvent):void
+			{
+				selectedCategory = CategoryType.AUTO;
+				
+				var carsCollection:ListCollectionView = new ListCollectionView(GameApplication.app.models.cars.carPrototypesCollection);
+				carsCollection.filterFunction = filterCarPrototypes;
+				carsCollection.refresh();
+				catalogBody.dataProvider = carsCollection;
+				
+				catalogbar.showGroups();
+				catalogbar.addEventListener(CatalogTabEvent.SELECTED, onSelectCategory);
+				catalogbar.addEventListener(CatalogTabEvent.UNSELECTED, onUnSelectCategory);
+			}
+			
+			private function filterCarPrototypes(prototype:CarPrototypeModel):Boolean{
+				if(prototype.price == 0 && prototype.priceReal == 0){
+					return false;
+				}
+				return true;
+			}
+			
+			private function filterRentCarPrototypes(prototype:CarPrototypeModel):Boolean{
+				if(prototype.rentPriceReal == 0){
+					return false;
+				}
+				return true;
+			}
+			
+			private function onUnSelectCategory(e:CatalogTabEvent):void{
+			}
+			
+			private function onSelectCategory(e:CatalogTabEvent):void{
+				selectedCategory = e.tab.category.id;
+				if(selectedCategory == CategoryType.AUTO){
+					var carsCollection:ListCollectionView = new ListCollectionView(GameApplication.app.models.cars.carPrototypesCollection);
+					carsCollection.filterFunction = filterCarPrototypes;
+					carsCollection.refresh();
+					catalogBody.itemRenderer = new ClassFactory(CatalogCarArticleRenderer);
+					catalogBody.dataProvider = carsCollection;
+				}else if(selectedCategory == CategoryType.RENT_AUTO){
+					var rentCarsCollection:ListCollectionView = new ListCollectionView(GameApplication.app.models.cars.carPrototypesCollection);
+					rentCarsCollection.filterFunction = filterRentCarPrototypes;
+					rentCarsCollection.refresh();
+					catalogBody.itemRenderer = new ClassFactory(CatalogRentCarRenderer);
+					catalogBody.dataProvider = rentCarsCollection;
+				}else if(selectedCategory == CategoryType.VIP){
+					catalogBody.itemRenderer = new ClassFactory(CatalogArticleRenderer);
+					catalogBody.dataProvider = GameApplication.app.models.vips.collection;
+				}
+				
+				buyBtn.visible = buyBtn.includeInLayout = false;
+				infoLbl.visible = infoLbl.includeInLayout = false;
+			}
+			
+			public function onHide():void{
+			}
+
+
+			protected function catalogBody_changeHandler(event:IndexChangeEvent):void{
+				updateControls();
+			}
+			
+			private function updateControls():void{
+				var price:Number;
+				var priceReal:Number;	
+				var rentPriceReal:Number;				
+				var selectedItem:* = catalogBody.selectedItem;
+				
+				if(selectedItem is CarPrototypeModel){
+					if((selectedItem as CarPrototypeModel).minLevel > GameApplication.app.userinfomanager.myuser.level){
+						buyBtn.visible = buyBtn.includeInLayout = false;
+						
+						infoLbl.text = "Недостаточно опыта для этой покупки";
+						infoLbl.setStyle("color", 0xff0000);
+						infoLbl.visible = infoLbl.includeInLayout = true;
+						return;
+					}
+					for each(var car:CarModel in GameApplication.app.userinfomanager.myuser.cars){
+						if(car.prototype.id == (selectedItem as CarPrototypeModel).id){
+							buyBtn.visible = buyBtn.includeInLayout = false;
+							
+							infoLbl.text = "У вас уже есть такой автомобиль";
+							infoLbl.setStyle("color", 0x00ff00);
+							infoLbl.visible = infoLbl.includeInLayout = true;
+							return;
+						}
+					}
+					
+					if(selectedCategory == CategoryType.AUTO){
+						price = (selectedItem as CarPrototypeModel).price;
+						priceReal = (selectedItem as CarPrototypeModel).priceReal;					
+						if((price > 0 && price > GameApplication.app.userinfomanager.myuser.money) ||
+							(priceReal > 0 && priceReal > GameApplication.app.userinfomanager.myuser.moneyReal)){
+							buyBtn.visible = buyBtn.includeInLayout = false;
+							
+							infoLbl.text = "Недостаточно денег для этой покупки";
+							infoLbl.setStyle("color", 0xff0000);
+							infoLbl.visible = infoLbl.includeInLayout = true;
+							return;
+						}
+					}else{
+						rentPriceReal = (selectedItem as CarPrototypeModel).rentPriceReal;					
+						if(rentPriceReal > 0 && rentPriceReal > GameApplication.app.userinfomanager.myuser.moneyReal){
+							buyBtn.visible = buyBtn.includeInLayout = false;
+							
+							infoLbl.text = "Недостаточно денег для этой покупки";
+							infoLbl.setStyle("color", 0xff0000);
+							infoLbl.visible = infoLbl.includeInLayout = true;
+							return;
+						}
+					}
+					
+					buyBtn.visible = buyBtn.includeInLayout = true;
+					infoLbl.visible = infoLbl.includeInLayout = false;
+				}else if(selectedItem is ItemPrototype){
+					price = (selectedItem as ItemPrototype).price;
+					priceReal = (selectedItem as ItemPrototype).priceReal;
+					if((price > 0 && price > GameApplication.app.userinfomanager.myuser.money) ||
+						(priceReal > 0 && priceReal > GameApplication.app.userinfomanager.myuser.moneyReal)){
+						buyBtn.visible = buyBtn.includeInLayout = false;
+						
+						infoLbl.text = "Недостаточно денег для этой покупки";
+						infoLbl.setStyle("color", 0xff0000);
+						infoLbl.visible = infoLbl.includeInLayout = true;
+						return;
+					}
+					
+					buyBtn.visible = buyBtn.includeInLayout = true;
+					infoLbl.visible = infoLbl.includeInLayout = false;
+				}
+			}
+
+
+			protected function gamebutton1_clickHandler(event:MouseEvent):void
+			{
+				GameApplication.app.navigator.goHome();
+			}
+
+
+			protected function gamebutton2_clickHandler(event:MouseEvent):void
+			{
+				GameApplication.app.apimanager.addMoneyUserID = GameApplication.app.userinfomanager.myuser.id;
+				GameApplication.app.apimanager.showBuyMoneyPopUp();
+
+			}
+
+			protected function buyBtn_clickHandler(event:MouseEvent):void
+			{
+				if(selectedCategory == CategoryType.RENT_AUTO){
+					GameApplication.app.popuper.show(new PopUpRentCar(catalogBody.selectedItem));
+				}else{
+					GameApplication.app.popuper.show(new PopUpBuyConfirm(catalogBody.selectedItem));
+				}
+			}
+
+			protected function group1_addedToStageHandler(event:Event):void
+			{
+				GameApplication.app.userinfomanager.myuser.cars.addEventListener(CollectionEvent.COLLECTION_CHANGE, onChangeUserCars, false, 0, true);
+			}
+
+			private function onChangeUserCars(e:CollectionEvent):void{
+				updateControls();
+			}
+
+			protected function group1_removedFromStageHandler(event:Event):void
+			{
+				GameApplication.app.userinfomanager.myuser.cars.removeEventListener(CollectionEvent.COLLECTION_CHANGE, onChangeUserCars);
+			}
+		]]>
+	</fx:Script>
+	
+	<s:Rect width="100%" height="100%">
+		<s:fill>
+			<s:SolidColor color="0x0" alpha=".8"/>
+		</s:fill>
+		<s:stroke>
+			<s:SolidColorStroke color="0xB7B7B7" weight="2"/>
+		</s:stroke>
+	</s:Rect>
+	<s:Label width="100%" top="8" textAlign="center" text="Магазин" fontSize="30" color="0xFFFFFF" fontWeight="bold" fontStyle="italic"/>
+	
+	<s:VGroup width="100%" height="100%" paddingLeft="10" paddingRight="10" paddingTop="40" paddingBottom="10" horizontalAlign="center">
+		<bar:CatalogBar id="catalogbar" height="25" gap="0" width="540"/>
+		<s:Group id="catalogBodyGroup" width="540" height="100%">
+			<s:List id="catalogBody" height="100%" width="100%"
+					contentBackgroundAlpha="0" borderVisible="false"
+					itemRenderer="application.gamecontainer.scene.catalog.article.catalog.CatalogCarArticleRenderer"
+					change="catalogBody_changeHandler(event)">
+				<s:layout>
+					<s:TileLayout horizontalGap="20" verticalGap="15"/>
+				</s:layout>
+			</s:List>
+		</s:Group>
+		<s:HGroup width="100%" verticalAlign="bottom">
+			<button:GameButton id="buyBtn" label="купить" visible="false" includeInLayout="false" click="buyBtn_clickHandler(event)"/>
+			<s:Label id="infoLbl" fontSize="12" color="0x00ff00" visible="false" includeInLayout="false"/>
+			<mx:Spacer width="100%"/>
+			<button:GameButton label="пополнить счет" click="gamebutton2_clickHandler(event)"/>
+			<button:GameButton label="выйти" click="gamebutton1_clickHandler(event)"/>
+		</s:HGroup>
+	</s:VGroup>
+</s:Group>

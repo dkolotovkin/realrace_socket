@@ -1,0 +1,486 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" implements="utils.interfaces.ISceneContent"
+		 xmlns:s="library://ns.adobe.com/flex/spark" initialize="onInit(event)" addedToStage="group1_addedToStageHandler(event)" removedFromStage="group1_removedFromStageHandler(event)"
+		 xmlns:mx="library://ns.adobe.com/flex/mx" width="100%" height="380" xmlns:local="*" xmlns:navigationbtn="application.gamecontainer.scene.home.navigationbtn.*" xmlns:buttonswf="application.components.buttonswf.*" xmlns:money="application.gamecontainer.persinfobar.money.*" xmlns:button="application.components.button.*" xmlns:iconswf="application.components.iconswf.*" xmlns:experience="application.gamecontainer.persinfobar.experience.*" xmlns:popular="application.gamecontainer.persinfobar.popular.*" xmlns:durability="application.gamecontainer.persinfobar.durability.*" xmlns:vip="application.gamecontainer.scene.home.vip.*">
+
+	<fx:Script>
+		<![CDATA[
+			import application.GameApplication;
+			import application.components.popup.help.durability.PopUpHelpDurability;
+			import application.components.popup.help.experience.PopUpHelpExperience;
+			import application.components.popup.help.popular.PopUpHelpPopular;
+			import application.components.popup.help.rule.PopUpRule;
+			import application.components.popup.repairAndBrush.PopUpRepairAndBrush;
+			import application.gamecontainer.scene.catalog.article.LibraryMovieClass;
+			
+			import flash.utils.clearInterval;
+			import flash.utils.setInterval;
+			
+			import flashx.textLayout.formats.TextDecoration;
+			
+			import mx.binding.utils.ChangeWatcher;
+			import mx.events.FlexEvent;
+			import mx.events.PropertyChangeEvent;
+			
+			import spark.filters.GlowFilter;
+			
+			import utils.brush.BrushManager;
+			import utils.interfaces.ISceneContent;
+			import utils.models.car.CarModel;
+			import utils.models.map.DistrictModel;
+			import utils.sound.SoundType;
+			import utils.user.UserRole;			
+			
+			private var activeCarWatcher:ChangeWatcher;
+			private var activeCarColorWatcher:ChangeWatcher;
+			private var activeCarDurabilityWatcher:ChangeWatcher;
+			private var rentWatcher:ChangeWatcher;
+			
+			private var _gf:spark.filters.GlowFilter = new GlowFilter(0x000000, 1, 10, 10, 1);
+			
+			private var activeCarMc:MovieClip;
+			
+			private var _sid:int = -1;
+			
+			
+			protected function goMap(event:MouseEvent):void{
+				if(GameApplication.app.userinfomanager.myuser.level == 1 && GameApplication.app.gamemanager.fistGame){
+					GameApplication.app.gamemanager.fistGame = false;
+					GameApplication.app.gamemanager.sendStartRequest(DistrictModel.DISTRICT1);
+				}else{
+					GameApplication.app.navigator.goMapPage();
+				}
+			}
+			protected function goBetPage(event:MouseEvent):void{
+				GameApplication.app.navigator.goBetPage();		
+			}
+			protected function onShopBtnClick(event:MouseEvent):void{	
+				GameApplication.app.navigator.goShop();
+			}
+			protected function onBagBtnClick(event:MouseEvent):void{
+				GameApplication.app.navigator.goBag();				
+			}
+
+			protected function onFriendsBtnClick(event:MouseEvent):void{
+				GameApplication.app.apimanager.inviteFriends();
+			}
+			
+			protected function onClanBtnClick(event:MouseEvent):void{
+				GameApplication.app.navigator.goClansRoom();				
+			}
+			
+			protected function onInit(event:FlexEvent):void
+			{
+				nick.toolTip = "Ваш ID: " + GameApplication.app.userinfomanager.myuser.id;
+				
+				nick.filters = [_gf];
+				level.filters = [_gf];
+				
+				if(UserRole.isAdministrator(GameApplication.app.userinfomanager.myuser.role) || UserRole.isAdministratorMain(GameApplication.app.userinfomanager.myuser.role)){
+					adminBtn.visible = adminBtn.includeInLayout = true;
+				}
+				
+//				if(GameApplication.app.config.playmode == 2){
+//					constructorBtn.visible = constructorBtn.includeInLayout = true;
+//					
+//					var filter:Filter = new Filter(30, 0, -100, 0, 0);
+//					Filter.brush(navigations, filter);
+//					navigations.mouseChildren = navigations.mouseEnabled = false;
+//				}
+			}
+			
+			protected function onTop(event:MouseEvent):void
+			{		
+				GameApplication.app.navigator.goTop();
+			}
+			
+			protected function showRule(event:MouseEvent):void
+			{
+				GameApplication.app.popuper.show(new PopUpRule());
+			}
+			
+			public function onHide():void{
+			}
+
+
+			protected function showBanPirice(event:MouseEvent):void
+			{
+				GameApplication.app.shopmanager.showBanPrice();
+			}
+
+			protected function onAdminBtnClick(event:MouseEvent):void
+			{
+				GameApplication.app.navigator.goAdminPanel();
+			}
+			
+			protected function goConstructor(event:MouseEvent):void
+			{
+				GameApplication.app.navigator.goConstructor();
+			}
+			
+			protected function nick_rollOverHandler(event:MouseEvent):void
+			{
+				nick.setStyle("textDecoration", TextDecoration.UNDERLINE);
+			}			
+			
+			protected function nick_rollOutHandler(event:MouseEvent):void
+			{
+				nick.setStyle("textDecoration", TextDecoration.NONE);
+			}			
+			
+			protected function nick_clickHandler(event:MouseEvent):void
+			{
+				GameApplication.app.userinfomanager.showchangeInfo();				
+				GameApplication.app.soundmanager.play(SoundType.CLICK);
+			}			
+			
+			protected function money1_clickHandler(event:MouseEvent):void
+			{
+				GameApplication.app.apimanager.addMoneyUserID = GameApplication.app.userinfomanager.myuser.id;
+				GameApplication.app.apimanager.showBuyMoneyPopUp();				
+				GameApplication.app.soundmanager.play(SoundType.CLICK);
+			}			
+			
+			protected function showHelpExperience(event:MouseEvent):void
+			{
+				GameApplication.app.popuper.show(new PopUpHelpExperience());				
+				GameApplication.app.soundmanager.play(SoundType.CLICK);
+			}			
+			
+			protected function showHelpPopular(event:MouseEvent):void
+			{
+				GameApplication.app.popuper.show(new PopUpHelpPopular());				
+				GameApplication.app.soundmanager.play(SoundType.CLICK);
+			}			
+			
+			protected function label1_rollOverHandler(event:MouseEvent):void
+			{
+				(event.target as Label).setStyle("textDecoration", TextDecoration.UNDERLINE);
+			}			
+			
+			protected function label1_rollOutHandler(event:MouseEvent):void
+			{
+				(event.target as Label).setStyle("textDecoration", TextDecoration.NONE);
+			}
+
+			protected function group1_addedToStageHandler(event:Event):void
+			{
+				activeCarWatcher = ChangeWatcher.watch(GameApplication.app.userinfomanager.myuser, "activeCar", onChangeActiveCar);
+				updateContentByActiveCar();
+				updateActiveCarColor();
+			}
+
+
+			protected function group1_removedFromStageHandler(event:Event):void
+			{
+				activeCarWatcher && activeCarWatcher.unwatch();
+				activeCarColorWatcher && activeCarColorWatcher.unwatch();
+				activeCarDurabilityWatcher && activeCarDurabilityWatcher.unwatch();
+				rentWatcher && rentWatcher.unwatch();
+			}
+			
+			private function onChangeActiveCar(e:PropertyChangeEvent):void{
+				updateContentByActiveCar();
+				updateActiveCarColor();
+			}
+			
+			private function updateContentByActiveCar():void{
+				var activeCar:CarModel = GameApplication.app.userinfomanager.myuser.activeCar;
+				if(activeCar){
+					carTitle.text = activeCar.prototype.title + " " + activeCar.prototype.size;
+					carDescription.text = activeCar.prototype.power + " л.с. " + activeCar.prototype.mass + " кг. " + "класс: " + activeCar.prototype.carClass;
+					
+					while(carUI.numChildren)
+						carUI.removeChildAt(0);
+					
+					var carMcClass:Class = LibraryMovieClass.getCarClassByCarPrototypeID(activeCar.prototype.id);
+					activeCarMc = new carMcClass();
+					carUI.addChild(activeCarMc);
+					
+					durabilityIndicator.durability = activeCar.durability;
+					durabilityIndicator.maxDurability = activeCar.durabilityMax;
+					
+					var car:CarModel;
+					var activeCarIndex:int = 0;
+					for(var i:int = 0; i < GameApplication.app.userinfomanager.myuser.cars.length; i++){
+						car = GameApplication.app.userinfomanager.myuser.cars.getItemAt(i) as CarModel;
+						if(car && car.id == activeCar.id){
+							activeCarIndex = i;
+							break;
+						}
+					}
+
+					if(GameApplication.app.userinfomanager.myuser.cars.length <= 1){
+						leftArrow.enabled = false;
+						rightArrow.enabled = false;
+					}else if(activeCarIndex == 0){
+						leftArrow.enabled = false;
+						rightArrow.enabled = true;
+					}else if(activeCarIndex == GameApplication.app.userinfomanager.myuser.cars.length - 1){
+						leftArrow.enabled = true;
+						rightArrow.enabled = false;
+					}else{
+						leftArrow.enabled = true;
+						rightArrow.enabled = true;
+					}
+				}
+				
+				activeCarColorWatcher && activeCarColorWatcher.unwatch();
+				activeCarColorWatcher = ChangeWatcher.watch(GameApplication.app.userinfomanager.myuser.activeCar, "color", onChangeActiveCarColor);
+				
+				activeCarDurabilityWatcher && activeCarDurabilityWatcher.unwatch();
+				activeCarDurabilityWatcher = ChangeWatcher.watch(GameApplication.app.userinfomanager.myuser.activeCar, "durability", onChangeActiveCarDurability);
+				
+				rentWatcher && rentWatcher.unwatch();
+				if(GameApplication.app.userinfomanager.myuser.activeCar.rented == 1){
+					durabilityGroup.visible = durabilityGroup.includeInLayout = false;
+					rentGroup.visible = rentGroup.includeInLayout = true;
+					
+					rentWatcher = ChangeWatcher.watch(GameApplication.app.userinfomanager.myuser.activeCar, "rentTime", onChangeActiveCarRentTime);
+					updateRent();
+				}else{
+					durabilityGroup.visible = durabilityGroup.includeInLayout = true;
+					rentGroup.visible = rentGroup.includeInLayout = false;
+				}
+			}
+			
+			private function onChangeActiveCarRentTime(e:PropertyChangeEvent):void{
+				updateRent();
+			}
+			
+			private function updateRent():void{
+				if(GameApplication.app.userinfomanager.myuser.activeCar){
+					var hours:int = Math.floor(GameApplication.app.userinfomanager.myuser.activeCar.rentTime / (60 * 60));
+					var minutes:int = Math.ceil((GameApplication.app.userinfomanager.myuser.activeCar.rentTime - hours * 60 * 60) / 60);
+					var hoursStr:String = "" + hours;
+					if(hours <= 9){
+						hoursStr = "0" + hours;
+					}
+					var minutesStr:String = "" + minutes;
+					if(minutes <= 9){
+						minutesStr = "0" + minutes;
+					}
+					
+					rentLbl.text = "До окончания аренды: " + hoursStr + "ч " + minutesStr + "м";
+				}
+			}
+			
+			private function onChangeActiveCarDurability(e:PropertyChangeEvent):void{
+				updateActiveCarDurability();
+			}
+			
+			private function updateActiveCarDurability():void{
+				if(activeCarMc && GameApplication.app.userinfomanager.myuser.activeCar){
+					durabilityIndicator.durability = GameApplication.app.userinfomanager.myuser.activeCar.durability;
+					durabilityIndicator.maxDurability = GameApplication.app.userinfomanager.myuser.activeCar.durabilityMax;
+				}
+			}
+			
+			private function onChangeActiveCarColor(e:PropertyChangeEvent):void{
+				updateActiveCarColor();
+			}
+			
+			private function updateActiveCarColor():void{
+				if(activeCarMc && GameApplication.app.userinfomanager.myuser.activeCar){
+					BrushManager.brush(GameApplication.app.userinfomanager.myuser.activeCar.color, activeCarMc["mc"]);
+				}
+			}
+
+			protected function leftArrow_clickHandler(event:MouseEvent):void
+			{
+				var car:CarModel;
+				var activeCarIndex:int = 0;
+				for(var i:int = 0; i < GameApplication.app.userinfomanager.myuser.cars.length; i++){
+					car = GameApplication.app.userinfomanager.myuser.cars.getItemAt(i) as CarModel;
+					if(car && car.id == GameApplication.app.userinfomanager.myuser.activeCar.id){
+						if(i > 0){
+							GameApplication.app.userinfomanager.myuser.activeCar = GameApplication.app.userinfomanager.myuser.cars.getItemAt(i - 1) as CarModel;
+							if(GameApplication.app.userinfomanager.myuser.activeCar){
+								GameApplication.app.so.data["activeCarID"] = GameApplication.app.userinfomanager.myuser.activeCar.id;
+								GameApplication.app.so.flush();
+								
+								if(_sid != -1){
+									clearInterval(_sid);
+									_sid = -1;
+								}
+								_sid = setInterval(setActiveCar, 5000);
+							}
+							break;
+						}
+					}
+				}
+			}
+
+			protected function rightArrow_clickHandler(event:MouseEvent):void
+			{
+				var car:CarModel;
+				var activeCarIndex:int = 0;
+				for(var i:int = 0; i < GameApplication.app.userinfomanager.myuser.cars.length; i++){
+					car = GameApplication.app.userinfomanager.myuser.cars.getItemAt(i) as CarModel;
+					if(car && car.id == GameApplication.app.userinfomanager.myuser.activeCar.id){
+						if(i < GameApplication.app.userinfomanager.myuser.cars.length - 1){
+							GameApplication.app.userinfomanager.myuser.activeCar = GameApplication.app.userinfomanager.myuser.cars.getItemAt(i + 1) as CarModel;
+							if(GameApplication.app.userinfomanager.myuser.activeCar){
+								GameApplication.app.so.data["activeCarID"] = GameApplication.app.userinfomanager.myuser.activeCar.id;
+								GameApplication.app.so.flush();
+								
+								if(_sid != -1){
+									clearInterval(_sid);
+									_sid = -1;
+								}
+								_sid = setInterval(setActiveCar, 5000);
+							}
+							break;
+						}
+					}
+				}
+			}
+			
+			private function setActiveCar():void{
+				if(_sid != -1){
+					clearInterval(_sid);
+					_sid = -1;
+				}
+				
+				if(GameApplication.app.userinfomanager.myuser.activeCar){
+					GameApplication.app.userinfomanager.setActiveCar(GameApplication.app.userinfomanager.myuser.activeCar.id);
+				}
+			}
+
+			protected function repair_clickHandler(event:MouseEvent):void
+			{
+				GameApplication.app.popuper.show(new PopUpRepairAndBrush());
+			}
+
+
+			protected function durabilityIndicator_clickHandler(event:MouseEvent):void
+			{
+				GameApplication.app.popuper.show(new PopUpHelpDurability());
+			}
+
+
+			protected function myRoomBtn_clickHandler(event:MouseEvent):void
+			{
+				GameApplication.app.navigator.goMyRoom();
+			}
+
+
+			protected function clanBtn_clickHandler(event:MouseEvent):void
+			{
+				GameApplication.app.navigator.goClansRoom();
+			}
+
+
+			protected function postScreen_clickHandler(event:MouseEvent):void
+			{
+				var _mc:* = GameApplication.app.gameContainer.scene;
+				var bmd:BitmapData = new BitmapData(_mc.width, _mc.height, true);
+				bmd.draw(_mc);
+				
+				GameApplication.app.apimanager.post("Заголовок", 'Снимок сделан в игре "Реальные гонки" (http://vk.com/rrace). Присоединяйтесь!', bmd, true);
+				
+				GameApplication.app.soundmanager.play(SoundType.CLICK);
+			}
+
+
+			protected function postChat_clickHandler(event:MouseEvent):void
+			{
+				var _mc:* = GameApplication.app.gameContainer.chat;
+				var bmd:BitmapData = new BitmapData(_mc.width, _mc.height, true);
+				bmd.draw(_mc);
+				
+				GameApplication.app.apimanager.post("Заголовок", 'Снимок сделан в игре "Реальные гонки" (http://vk.com/rrace). Присоединяйтесь!', bmd, true);
+				
+				GameApplication.app.soundmanager.play(SoundType.CLICK);
+			}
+
+		]]>
+	</fx:Script>
+	
+	<iconswf:IconMXML iconClass="{HomeBg}"/>
+	<iconswf:IconMXML iconClass="{HomePageFrame}"/>
+	<s:Rect width="100%" height="100%">
+		<s:fill>
+			<s:SolidColor color="0x0" alpha="0"/>
+		</s:fill>
+		<s:stroke>
+			<s:SolidColorStroke color="0xB7B7B7" weight="2"/>
+		</s:stroke>
+	</s:Rect>
+	<s:Label width="100%" top="8" textAlign="center" text="Гараж" fontSize="30" color="0xFFFFFF" fontWeight="bold" fontStyle="italic"/>
+	
+	<s:VGroup left="347" top="50" horizontalAlign="center" gap="11">
+		<s:HGroup id="durabilityGroup"  verticalAlign="middle">
+			<durability:DurabilityIndicator id="durabilityIndicator" click="durabilityIndicator_clickHandler(event)"/>
+			<buttonswf:ButtonMXML id="repair" iconClass="{RepairBtn}" click="repair_clickHandler(event)" toolTip="Мастерская"/>
+		</s:HGroup>
+		<!--<iconswf:IconMXML iconClass="{BottomSnow}"/>-->
+	</s:VGroup>
+	
+	<s:HGroup id="rentGroup" left="347" top="50" height="30" width="220" verticalAlign="middle" horizontalAlign="center">
+		<s:Label id="rentLbl" color="0xFF9933" fontSize="14" fontWeight="bold"/>
+	</s:HGroup>
+	
+	<s:HGroup width="100%" bottom="5" horizontalAlign="center">
+		<buttonswf:ButtonMXML id="leftArrow" iconClass="{ArrowLeft}" click="leftArrow_clickHandler(event)"/>
+		<s:VGroup width="250" gap="3">
+			<s:Label width="100%" textAlign="center" id="carTitle" fontSize="20" color="0xFFFFFF" fontWeight="bold"/>
+			<s:Label width="100%" textAlign="center" id="carDescription" fontSize="12" color="0xcccccc"/>
+		</s:VGroup>
+		<buttonswf:ButtonMXML id="rightArrow" iconClass="{ArrowRight}" click="rightArrow_clickHandler(event)"/>
+	</s:HGroup>
+	
+	<s:VGroup width="150" height="205" left="20" top="15">
+		<s:HGroup verticalAlign="middle" gap="0">
+			<vip:VipIndicator/>
+			<s:Label id="nick" buttonMode="true" text="{GameApplication.app.userinfomanager.myuser.title}" height="13" color="0xffffff" fontSize="14" fontWeight="normal" click="nick_clickHandler(event)" rollOver="nick_rollOverHandler(event)" rollOut="nick_rollOutHandler(event)"/>
+			<mx:Spacer width="5"/>
+			<s:Label id="level" toolTip="Уровень" text="[{GameApplication.app.userinfomanager.myuser.level}]" height="13" color="0x00FFFF" fontSize="14" fontWeight="normal"/>
+		</s:HGroup>
+		<mx:Spacer height="5"/>
+		<experience:ExperienceIndicator width="100%" buttonMode="true" experience="{GameApplication.app.userinfomanager.myuser.experience}" maxexperience="{GameApplication.app.userinfomanager.myuser.maxExperience}" click="showHelpExperience(event)"/>
+		<popular:PopularIndicator id="mypopular" buttonMode="true" width="100%" popular="{GameApplication.app.userinfomanager.myuser.popular}" click="showHelpPopular(event)"/>
+		<mx:Spacer height="100%"/>
+		
+		<money:Money buttonMode="true" toolTip="Ваш баланс" money="{GameApplication.app.userinfomanager.myuser.money}" right="0" click="money1_clickHandler(event)"/>			
+		<money:MoneyReal buttonMode="true" toolTip="Ваш баланс" moneyReal="{GameApplication.app.userinfomanager.myuser.moneyReal}" right="0" click="money1_clickHandler(event)"/>
+	</s:VGroup>
+	
+	<buttonswf:ButtonMXML iconClass="{AddMoneyBtn}" left="115" top="215" toolTip="Пополнить баланс" buttonMode="true" click="money1_clickHandler(event)"/>
+	<buttonswf:ButtonMXML iconClass="{IconButInvite}" toolTip="Пригласить друзей" left="166" top="149" click="onFriendsBtnClick(event)"/>
+	
+	<mx:UIComponent id="carUI" x="220" y="150"/>
+	
+	<s:VGroup id="navigations" height="100%" paddingTop="50" right="8" bottom="9" horizontalAlign="right">
+		<s:Group>
+			<buttonswf:ButtonMXML toolTip="Личный кабинет" iconClass="{IconButMyRoom}" click="myRoomBtn_clickHandler(event)"/>
+			<!--<iconswf:IconMXML iconClass="{ButtonSnowHat2}" top="-18"/>-->
+		</s:Group>
+		<s:Group>
+			<buttonswf:ButtonMXML id="shopBtn" toolTip="Магазин" iconClass="{IconButShop}" click="onShopBtnClick(event)"/>
+			<!--<iconswf:IconMXML iconClass="{ButtonSnow1}" left="2" top="-12"/>-->
+		</s:Group>
+		<s:Group>
+			<buttonswf:ButtonMXML id="topBtn" toolTip="Топ игроков" iconClass="{IconButTop}" click="onTop(event)"/>
+			<!--<iconswf:IconMXML iconClass="{ButtonSnow2}" left="2" top="-12"/>-->
+		</s:Group>
+		<s:Group>
+			<buttonswf:ButtonMXML id="clanBtn" toolTip="Автоклубы" iconClass="{IconButClubs}" click="clanBtn_clickHandler(event)"/>
+			<!--<iconswf:IconMXML iconClass="{ButtonSnow2}" left="2" top="-12"/>-->
+		</s:Group>
+		
+		<!--<buttonswf:ButtonMXML id="bagBtn" toolTip="Рюкзак" iconClass="{IconButBag}" click="onBagBtnClick(event)"/>-->
+		<!--<buttonswf:ButtonMXML id="minigamesBtn" toolTip="Мини игры" iconClass="{IconButMiniGames}" click="onMiniGames(event)"/>-->
+		<mx:Spacer height="100%"/>
+		<s:Group>
+			<buttonswf:ButtonMXML id="playBtn" iconClass="{IconButPlay}" click="goMap(event)" toolTip="В заезд"/>
+			<!--<iconswf:IconMXML iconClass="{ButtonSnowHat1}" left="22" top="-22"/>-->
+		</s:Group>
+	</s:VGroup>
+	
+	<s:HGroup width="100%" top="5" paddingRight="80" horizontalAlign="right">
+		<buttonswf:ButtonMXML id="postScreen" iconClass="{PostScreenBtn}" click="postScreen_clickHandler(event)" toolTip="Сделать снимок экрана"/>
+		<buttonswf:ButtonMXML id="postChat" iconClass="{PostChatBtn}" click="postChat_clickHandler(event)" toolTip="Сделать снимок чата"/>
+		<buttonswf:ButtonMXML id="adminBtn" scaleX="0.6" scaleY="0.6" toolTip="Панель администратора" iconClass="{IconButAdmin}" click="onAdminBtnClick(event)" visible="false" includeInLayout="false"/>
+	</s:HGroup>
+</s:Group>

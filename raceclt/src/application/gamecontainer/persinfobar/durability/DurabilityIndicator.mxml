@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" buttonMode="true"
+		  xmlns:s="library://ns.adobe.com/flex/spark" implements="utils.managers.tooltip.IToolTiped"
+		  xmlns:mx="library://ns.adobe.com/flex/mx" xmlns:local="*" width="183" height="17" xmlns:iconswf="application.components.iconswf.*">
+	
+	<fx:Script>
+		<![CDATA[
+			import utils.managers.tooltip.IToolTiped;
+			import utils.managers.tooltip.ToolTipType;
+			
+			private var _durability:Number = 0;			
+			private var _maxDurability:Number = 0;
+			
+			public function get toolTipDelay() : int {				
+				return 400;
+			}
+			
+			public function get toolTipDX() : int {
+				return 10;
+			}
+			
+			public function get toolTipDY() : int {
+				return 2;
+			}
+			
+			public function get toolTipType() : int {
+				return ToolTipType.DURABILITY;
+			}
+			
+			public function set durability(value:Number):void{
+				_durability = value;
+				maskGroup.percentWidth = 100 * Math.min(_durability / _maxDurability, 1);
+			}
+			
+			public function set maxDurability(value:Number):void{
+				_maxDurability = value;
+				maskGroup.percentWidth = 100 * Math.min(_durability / _maxDurability, 1);
+			}
+			
+			public function get durability():Number{
+				return _durability;
+			}
+			
+			public function get maxDurability():Number{
+				return _maxDurability;
+			}
+		]]>
+	</fx:Script>
+	
+	<iconswf:IconMXML iconClass="{DurabilityProgressBackMc}"/>
+	<iconswf:IconMXML mask="{maskGroup}" iconClass="{DurabilityProgressFrontMc}" mouseEnabled="false" mouseChildren="false" top="2" bottom="2" left="2" right="2"/>
+	
+	<s:Group id="maskGroup" height="100%" top="2" bottom="2" left="2" right="2">
+		<s:Rect width="100%" height="100%">
+			<s:fill>
+				<s:SolidColor color="0xff0000"/>
+			</s:fill>
+		</s:Rect>
+	</s:Group>
+</s:Group>

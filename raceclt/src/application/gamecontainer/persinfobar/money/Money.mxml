@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:HGroup xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		  xmlns:s="library://ns.adobe.com/flex/spark"
+		  xmlns:mx="library://ns.adobe.com/flex/mx" xmlns:local="*" gap="5" verticalAlign="middle" xmlns:iconswf="application.components.iconswf.*">
+	
+	<fx:Script>
+		<![CDATA[
+			import mx.events.FlexEvent;
+			
+			import spark.filters.DropShadowFilter;
+			import spark.filters.GlowFilter;
+			[Bindable]
+			public var money:uint;			
+		]]>
+	</fx:Script>
+	
+	<iconswf:IconMXML iconClass="{IconMoney}"/>
+	<s:Label id="l" text="{money}" paddingTop="5" color="0xCADEF1" fontSize="14" fontWeight="bold"/>
+</s:HGroup>

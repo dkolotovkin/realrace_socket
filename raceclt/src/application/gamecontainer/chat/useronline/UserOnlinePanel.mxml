@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark" initialize="group1_initializeHandler(event)"
+		 xmlns:mx="library://ns.adobe.com/flex/mx" width="100%" height="100%" xmlns:input="application.gamecontainer.chat.input.*" xmlns:iconswf="application.components.iconswf.*">
+	<s:layout>
+		<s:BasicLayout/>
+	</s:layout>
+
+	<fx:Script>
+		<![CDATA[
+			import flash.utils.clearInterval;
+			import flash.utils.setInterval;
+			
+			import mx.collections.ArrayCollection;
+			import mx.collections.ListCollectionView;
+			import mx.events.CollectionEvent;
+			import mx.events.CollectionEventKind;
+			import mx.events.FlexEvent;
+			
+			import utils.chat.room.Room;
+			import utils.user.User;
+			
+			private var _sid:int = -1;
+			
+			[Bindable]
+			private var countOnline:int;
+			
+			[Bindable]
+			private var collection:ListCollectionView;
+			
+			private var _activeRoom:Room
+			
+			[Bindable]
+			public function get activeRoom():Room{
+				return _activeRoom;
+			}
+			
+			public function set activeRoom(value:Room):void{
+				_activeRoom = value;
+				
+				if(collection){
+					collection.removeEventListener(CollectionEvent.COLLECTION_CHANGE, onChangeCollection);
+				}
+				
+				if(value){
+					collection = new ListCollectionView(value.usersCollection);
+				}else{
+					collection = new ListCollectionView();
+				}
+				
+				if(collection){
+					collection.filterFunction = filter;
+					collection.refresh();
+					collection.addEventListener(CollectionEvent.COLLECTION_CHANGE, onChangeCollection, false, 0, true);
+					countOnline = collection.length;
+				}else{
+					countOnline = 0;
+				}
+			}
+			
+			private function onChangeCollection(e:CollectionEvent):void{
+				countOnline = collection.length;
+			}
+			
+			protected function inptext_focusInHandler(event:FocusEvent):void
+			{
+				serchicon.visible = false;
+			}
+
+			protected function inptext_focusOutHandler(event:FocusEvent):void
+			{
+				if(_sid != -1){
+					clearInterval(_sid);
+				}
+				_sid = setInterval(onClearSearch, 1000);
+				
+			}
+			
+			private function onClearSearch():void{
+				if(_sid != -1){
+					clearInterval(_sid);
+				}
+				
+				inptext.text = "";
+				serchicon.visible = true;
+				if(collection){
+					collection.refresh();
+				}
+			}
+
+			protected function group1_initializeHandler(event:FlexEvent):void
+			{
+				inptext.textinput.addEventListener(Event.CHANGE, onChange, false, 0, true);
+			}
+			
+			private function onChange(e:Event):void
+			{
+				if(collection){
+					collection.refresh();
+				}
+			}
+
+			private function filter(user:User):Boolean{
+				if(inptext.text.length > 0){
+					if(user.title.toLowerCase().indexOf(inptext.text.toLowerCase()) >= 0){
+						return true;
+					}else{
+						return false;
+					}
+				}
+				return true;
+			}
+		]]>
+	</fx:Script>
+
+	<s:Rect width="100%" height="100%">
+		<s:fill>
+			<s:SolidColor color="0x33353C" alpha=".95"/>
+		</s:fill>
+	</s:Rect>
+	<s:VGroup width="100%" height="100%" gap="3">
+		<s:Group id="titleGroup" width="100%" height="18">
+			<s:Rect width="100%" height="100%">
+				<s:fill>
+					<s:SolidColor color="0x5F6273" alpha="0.95"/>
+				</s:fill>
+			</s:Rect>
+			<s:HGroup verticalAlign="middle" width="100%">
+				<s:Label top="4" id="online" text=" В сети ({countOnline})" color="0xdddddd" fontSize="11" textAlign="center" width="100%"/>
+				<s:Group>
+					<s:Rect width="100%" height="100%" left="1" right="1" top="1" bottom="1">
+						<s:fill>
+							<s:SolidColor color="0x252728" alpha=".95"/>
+						</s:fill>
+					</s:Rect>
+					<input:InputText id="inptext" fontSize="12" width="70" height="18" focusIn="inptext_focusInHandler(event)" focusOut="inptext_focusOutHandler(event)"/>
+					<iconswf:IconMXML id="serchicon" iconClass="{SearchIcon}" left="5" top="3"/>
+				</s:Group>
+			</s:HGroup>
+		</s:Group>
+		<s:HGroup id="usersListGroup" width="100%" height="100%" paddingTop="2" paddingLeft="2" paddingRight="2" paddingBottom="2">
+			<s:List id="usersList" height="100%" width="100%"
+					contentBackgroundAlpha="0" borderVisible="false"
+					dataProvider="{collection}"
+					itemRenderer="application.gamecontainer.chat.useronline.ChatUserListRenderer">
+				<s:layout>
+					<s:VerticalLayout gap="2"/>
+				</s:layout>
+			</s:List>
+		</s:HGroup>
+	</s:VGroup>
+</s:Group>

@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:ItemRenderer xmlns:fx="http://ns.adobe.com/mxml/2009" width="100%"
+				xmlns:s="library://ns.adobe.com/flex/spark" rollOver="itemrenderer1_rollOverHandler(event)" rollOut="itemrenderer1_rollOutHandler(event)"
+				xmlns:mx="library://ns.adobe.com/flex/mx" buttonMode="true"
+				autoDrawBackground="false" xmlns:article="application.gamecontainer.scene.catalog.article.*" xmlns:money="application.gamecontainer.persinfobar.money.*" xmlns:useritem="application.components.useritem.*">
+	<fx:Script>
+		<![CDATA[
+			import application.GameApplication;
+			import application.components.popup.sendmail.PopUpSendMail;
+			
+			import flashx.textLayout.edit.SelectionFormat;
+			
+			import utils.models.MailMessageModel;
+			import utils.user.User;
+			
+			private var _s:SelectionFormat = new SelectionFormat(0x000000, 1, BlendMode.NORMAL, 0xffffff, 1, BlendMode.NORMAL);
+			
+			override public function set data(value:Object):void{
+				super.data = value;
+				
+				var message:MailMessageModel = value as MailMessageModel;
+				if(message){		
+					useritem.user = message.user;
+					useritem.title.maxWidth = 100;
+					messageText.text = message.text;
+					if(message.ctime && message.ctime.length){
+						ctimeLbl.text = message.ctime;
+					}
+					messageText.textFlow.interactionManager.focusedSelectionFormat = _s;
+				}
+			}
+			
+			protected function label1_clickHandler(event:MouseEvent):void
+			{
+				event.stopPropagation();
+				var message:MailMessageModel = data as MailMessageModel;
+				if(message){
+					GameApplication.app.userinfomanager.removeMailMessage(message.id);
+				}
+			}
+			
+			protected function label2_clickHandler(event:MouseEvent):void
+			{
+				var message:MailMessageModel = data as MailMessageModel;
+				if(message){
+					GameApplication.app.popuper.show(new PopUpSendMail(message.user));					
+				}
+			}
+			
+			protected function itemrenderer1_rollOverHandler(event:MouseEvent):void
+			{
+				overGroup.visible= true;
+			}
+			
+			
+			protected function itemrenderer1_rollOutHandler(event:MouseEvent):void
+			{
+				overGroup.visible = false;
+			}
+			
+		]]>
+	</fx:Script>	
+	<s:Rect id="overGroup" visible="false" width="100%" height="100%">
+		<s:fill>
+			<s:SolidColor color="0xffffff" alpha=".2"/>
+		</s:fill>
+	</s:Rect>
+	<s:HGroup verticalAlign="top" width="100%" height="100%" gap="0" paddingTop="2" paddingBottom="2" paddingLeft="5" paddingRight="5">
+		<s:VGroup horizontalAlign="center" width="160">
+			<useritem:OnlinePopularUserItem width="100%" id="useritem"/>
+			<s:Label id="ctimeLbl" color="0xC4C4C4" fontSize="10"/>
+		</s:VGroup>
+		<s:RichEditableText id="messageText" selectable="true" editable="false" color="0xffffff" fontSize="12" width="270"/>
+		<mx:Spacer width="100%" minWidth="5"/>		
+		<s:Label color="0xC4C4C4" text="ответить" textDecoration="underline" buttonMode="true" click="label2_clickHandler(event)" fontSize="12"/>
+		<mx:Spacer width="3"/>
+		<s:Label color="0xC4C4C4" text="удалить" textDecoration="underline" buttonMode="true" click="label1_clickHandler(event)" fontSize="12"/>		
+	</s:HGroup>
+</s:ItemRenderer>

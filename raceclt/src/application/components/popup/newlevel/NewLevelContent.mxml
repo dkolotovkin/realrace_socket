@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" initialize="group1_initializeHandler(event)"
+		 xmlns:s="library://ns.adobe.com/flex/spark"
+		 xmlns:mx="library://ns.adobe.com/flex/mx" top="35" width="100%" height="100%" xmlns:button="application.components.button.*" xmlns:money="application.gamecontainer.persinfobar.money.*" xmlns:iconswf="application.components.iconswf.*">
+	<fx:Script>
+		<![CDATA[
+			import application.GameApplication;
+			import application.GameMode;
+			
+			import mx.events.FlexEvent;
+			
+			public function init(level:int, prize:int):void{
+				(nlicon.icon["l"] as TextField).text = String(level);
+				(nlicon.icon["lbg"] as TextField).text = String(level);
+				
+				nlprize.money = prize;
+			}
+			
+			protected function gamebutton1_clickHandler(event:MouseEvent):void
+			{
+				GameApplication.app.popuper.currentpopup.closeBt.visible = false;
+				var _mc:* = GameApplication.app.popuper.currentpopup;
+				var bmd:BitmapData = new BitmapData(_mc.width, _mc.height, true);
+				bmd.draw(_mc);
+				
+				GameApplication.app.apimanager.post("Заголовок", 'У меня новый уровень в игре "Реальные гонки" (http://vk.com/rrace).', bmd);
+				GameApplication.app.popuper.hidePopUp();
+			}
+			
+			
+			protected function group1_initializeHandler(event:FlexEvent):void
+			{
+				if(GameApplication.app.config.mode == GameMode.VK || GameApplication.app.config.mode == GameMode.OD || GameApplication.app.config.mode == GameMode.MM){				
+					postGroup.includeInLayout = postGroup.visible = true;
+				}
+			}
+		]]>
+	</fx:Script>
+	<s:VGroup width="100%" height="100%">
+		<s:HGroup width="100%" height="100%" verticalAlign="middle">
+			<iconswf:IconMXML id="nlicon" iconClass="{IconNewLevel}"/>
+			<s:VGroup width="100%" height="100%" verticalAlign="middle">
+				<s:Label text="Вы достигли нового уровня!" width="200" color="0xFF9933" fontSize="14" fontWeight="normal"/>		
+				<s:HGroup width="100%" verticalAlign="middle">
+					<s:Label text="Награда:" color="0xffffff" fontSize="14" fontWeight="normal"/>
+					<money:Money id="nlprize" money="{200}"/>				
+				</s:HGroup>
+			</s:VGroup>
+		</s:HGroup>
+		<s:HGroup id="postGroup" width="100%" horizontalAlign="center" visible="false" includeInLayout="false">
+			<button:GameButton label="рассказать друзьям" click="gamebutton1_clickHandler(event)"/>
+		</s:HGroup>
+	</s:VGroup>
+</s:Group>

@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark" creationComplete="group1_creationCompleteHandler(event)"
+		 xmlns:mx="library://ns.adobe.com/flex/mx" top="35" width="100%" height="100%" xmlns:button="application.components.button.*" xmlns:money="application.gamecontainer.persinfobar.money.*">
+	<fx:Script>
+		<![CDATA[
+			import application.GameApplication;
+			import application.components.useritem.OnlinePopularUserItem;
+			
+			import flashx.textLayout.edit.SelectionFormat;
+			
+			import mx.events.FlexEvent;
+			
+			import utils.protocol.ProtocolKeys;
+			import utils.protocol.ProtocolValues;
+			import utils.user.Sex;
+			import utils.user.User;
+			private var _s:SelectionFormat = new SelectionFormat(0x000000, 1, BlendMode.NORMAL, 0xffffff, 1, BlendMode.NORMAL);			
+			
+			
+			
+			protected function group1_creationCompleteHandler(event:FlexEvent):void
+			{				
+				textinput.textDisplay.textFlow.interactionManager.focusedSelectionFormat = _s;
+				contentText.text = "У вас есть возможность заработать евро за приглашенных в игру. При достижении нового уровня приглашенным вами игроком, вам будет начислен бонус в размере: уровень * уровень * 5 евро. Основное условие получения бонусов: игрок должен зарегистрироваться в игре, перейдя по вашей персональной ссылке.";
+				textinput.text = "http://mouserun.ru/?inviter=" + GameApplication.app.userinfomanager.myuser.id;
+				
+				GameApplication.app.callsmanager.call(ProtocolValues.GET_INVITED_USERS, onGetInvitedUsers);
+			}	
+			
+			private function onGetInvitedUsers(result:Object):void{
+				var users:Array = result[ProtocolKeys.USERS];
+				if(users.length > 0){
+					scroller.visible = scroller.includeInLayout = true;
+					nousers.visible = nousers.includeInLayout = false;
+					
+					for(var i:int = 0; i < users.length; i++){
+						var auser:InvitedUserItem = new InvitedUserItem();
+						auser.num = i + 1;
+						auser.buttonMode = true;
+						auser.user = User.createFromObject(users[i]);
+						invitedUsers && invitedUsers.addElement(auser);
+					}
+				}
+			}
+		]]>
+	</fx:Script>
+	<s:VGroup width="300" height="100%">
+		<s:Label id="contentText" width="300" color="0xFF9933" fontSize="14" fontWeight="normal"/>
+		<s:Label text="Персональная ссылка:" color="0xffffff" fontSize="14" fontWeight="normal"/>
+		<s:TextInput id="textinput" maxChars="25" width="100%" color="0xffffff" contentBackgroundColor="0x666666" focusAlpha="0" focusEnabled="false" borderColor="0x333333"/>
+		<s:Label text="Cписок приглашенных вами игроков:" color="0xffffff" fontSize="14" fontWeight="normal"/>
+		<s:Group width="100%" height="150">
+			<s:Scroller id="scroller" width="100%" height="100%" visible="false">
+				<s:TileGroup id="invitedUsers"/>
+			</s:Scroller>
+			<s:HGroup id="nousers" width="100%" height="100%" horizontalAlign="center" verticalAlign="middle">
+				<s:Label fontSize="12" width="100%" textAlign="center" color="0xcccccc" text="Нет приглашенных"/>
+			</s:HGroup>			
+		</s:Group>
+	</s:VGroup>
+</s:Group>

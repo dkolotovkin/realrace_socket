@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark"
+		 xmlns:mx="library://ns.adobe.com/flex/mx">
+	<fx:Script>
+		<![CDATA[
+			import application.GameApplication;
+			import application.gamecontainer.chat.userfinishedpanel.info.FinishedInfo;
+			
+			import flashx.textLayout.formats.TextAlign;
+			
+			import mx.events.FlexEvent;
+			import mx.events.ResizeEvent;
+			
+			import utils.user.User;
+			
+			private var k:Number;
+			
+			private var usersIndicators:Object = new Object();
+			private var usersTitles:Object = new Object();
+			
+			public function clearPanel():void{
+				while(mapBgLayer.numChildren){
+					mapBgLayer.removeChildAt(0);
+				}
+				
+				while(usersLayer.numChildren){
+					usersLayer.removeChildAt(0);
+				}
+				
+				usersIndicators = new Object();
+				usersTitles = new Object();
+			}
+			
+			public function drawBg(bmd:BitmapData):void{
+				var bgMapSprite:Sprite = new Sprite();
+				bgMapSprite.addChild(new Bitmap(bmd));
+				
+				var wK:Number = contentGr.width / bgMapSprite.width;
+				var hK:Number = contentGr.height / bgMapSprite.height;
+				k = Math.min(wK, hK);
+				mapBgLayer.width = bgMapSprite.width * k;
+				mapBgLayer.height = bgMapSprite.height * Math.min(wK, hK);
+				bgMapSprite.scaleX = bgMapSprite.scaleY = k;
+				
+				mapBgLayer.addChild(bgMapSprite);
+			}
+			
+			public function createUser(user:User):void{
+				if(user){
+					var color:uint = 0xffffff;
+					if(user.id == GameApplication.app.userinfomanager.myuser.id){
+						color = 0xFFFF00;
+					}
+					
+					var indicator:Sprite = new Sprite();
+					indicator.graphics.clear();
+					indicator.graphics.beginFill(color, 1);
+					indicator.graphics.drawCircle(0, 0, 2.5);
+					indicator.graphics.endFill();
+					
+					usersLayer.addChild(indicator);
+					usersIndicators[user.id] = indicator;
+					
+					/*var userTitle:TextField = new TextField();				
+					var tfn:TextFormat = new TextFormat();
+					tfn.align = TextAlign.CENTER;
+					if(user.id == GameApplication.app.userinfomanager.myuser.id){
+						tfn.bold = true;
+						tfn.color = "0xCCFF66";
+					}else{
+						tfn.color = "0xCCCCCC";
+					}
+					tfn.size = 10;
+					
+					var tfl:TextFormat = new TextFormat();
+					if(user.id == GameApplication.app.userinfomanager.myuser.id){
+						tfl.bold = true;
+						tfl.color = "0x00FFFF";
+					}else{
+						tfl.color = "0xEEEEEE";
+					}			
+					tfl.size = 10;
+					
+					userTitle.selectable = false		
+					userTitle.text = user.title + " [" + String(user.level) + "]";
+					userTitle.setTextFormat(tfn, 0, user.title.length);
+					userTitle.setTextFormat(tfl, user.title.length, userTitle.text.length);	
+					
+					usersLayer.addChild(userTitle);
+					usersTitles[user.id] = userTitle;*/
+				}
+			}
+			
+			public function setUserPosition(userID:int, userX:Number, userY:Number):void
+			{
+				var indicator:Sprite = usersIndicators[userID];
+				if(indicator){
+					indicator.x = k * userX;
+					indicator.y = k * userY;
+				}
+				/*var userTitle:TextField = usersTitles[userID];
+				if(userTitle){
+					userTitle.x = k * userX - userTitle.width / 2;
+					userTitle.y = k * userY - 18;
+				}*/
+			}
+
+		]]>
+	</fx:Script>
+	
+	<s:Rect width="100%" height="100%">
+		<s:fill>
+			<s:SolidColor color="0x33353C" alpha=".95"/>
+		</s:fill>
+	</s:Rect>
+	
+	<s:Rect width="100%" height="18">
+		<s:fill>
+			<s:SolidColor color="0x5F6273" alpha=".95"/>
+		</s:fill>
+	</s:Rect>
+	<s:Label top="4" text="Мини-карта" color="0xdddddd" fontSize="11" textAlign="center" width="100%"/>
+	
+	<s:VGroup width="100%" height="100%" paddingLeft="5" paddingRight="5" paddingBottom="5" paddingTop="23">
+		<s:VGroup id="contentGr" width="100%" height="100%" verticalAlign="middle" horizontalAlign="center">
+			<s:Group height="150">
+				<mx:UIComponent id="mapBgLayer"/>
+				<mx:UIComponent id="usersLayer" includeInLayout="false"/>
+			</s:Group>
+		</s:VGroup>
+	</s:VGroup>
+</s:Group>

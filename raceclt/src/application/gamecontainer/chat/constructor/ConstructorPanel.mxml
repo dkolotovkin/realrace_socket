@@ -1,0 +1,526 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:HGroup xmlns:fx="http://ns.adobe.com/mxml/2009" initialize="hgroup1_initializeHandler(event)"
+		  xmlns:s="library://ns.adobe.com/flex/spark" paddingLeft="10" paddingRight="10" paddingTop="5" gap="10"
+		  xmlns:mx="library://ns.adobe.com/flex/mx" width="100%" xmlns:buttonswf="application.components.buttonswf.*" xmlns:iconswf="application.components.iconswf.*" xmlns:article="application.gamecontainer.scene.bag.article.*">
+
+	<fx:Script>
+		<![CDATA[
+			import application.GameApplication;
+			import application.gamecontainer.scene.bag.article.ConstructorArticleEvent;
+			import application.gamecontainer.scene.game.SceneElements;
+			
+			import mx.collections.ArrayCollection;
+			import mx.events.FlexEvent;
+			
+			import spark.events.IndexChangeEvent;
+			
+			import utils.constructor.BackGroundType;
+			import utils.constructor.ConstructorCreateMode;
+			import utils.constructor.ConstructorElement;
+			import utils.game.action.GameType;
+			import utils.managers.constructor.ConstructorElementEvent;
+			import utils.managers.constructor.ConstructorManagerEvent;
+			import utils.selector.Selector;
+			
+			private var _currentElement:ConstructorElement;
+			
+			protected var _selector : Selector = new Selector();
+			
+			private var _articles:Array = new Array();
+			
+			[Bindable]
+			public var lapsCollection:ArrayCollection = new ArrayCollection([{label:"2 круга", data:2}, {label:"3 круга", data:3}, {label:"5 кругов", data:5}, {label:"10 кругов", data:10}]);
+			[Bindable]
+			public var bgCollection:ArrayCollection = new ArrayCollection([{label:"фон 1", data:BackGroundType.BG1}, {label:"фон 2", data:BackGroundType.BG2}, {label:"фон 3", data:BackGroundType.BG3}]);
+			
+			protected function onExit(event:MouseEvent):void
+			{
+				GameApplication.app.navigator.goHome();
+			}
+
+			protected function hgroup1_initializeHandler(event:FlexEvent):void
+			{
+				_articles = new Array();
+				_articles.push(a1); _articles.push(a2);	_articles.push(a3); 
+				_articles.push(a4); _articles.push(a5);	_articles.push(a6); 
+				_articles.push(a7); _articles.push(a8);	_articles.push(a9); 
+				_articles.push(a10); _articles.push(a11); _articles.push(a12);
+				_articles.push(a13); _articles.push(a14); _articles.push(a15);
+				_articles.push(a16); _articles.push(a17); _articles.push(a18);
+				_articles.push(a19); _articles.push(a20); _articles.push(a21);
+				
+				for(var i:uint = 0; i < _articles.length; i++){
+					(_articles[i] as ConstructorArticle).addEventListener(ConstructorArticleEvent.SELECTED, onArticleSelected, false, 0, true);
+					(_articles[i] as ConstructorArticle).addEventListener(ConstructorArticleEvent.UNSELECTED, onArticlenUnSelected, false, 0, true);
+				}
+				
+				GameApplication.app.constructor.addEventListener(ConstructorManagerEvent.ELEMENT_CREATED, onElementCreated, false, 0, true);
+				GameApplication.app.constructor.addEventListener(ConstructorManagerEvent.BG_CHANGE, onBgChange, false, 0, true);
+				GameApplication.app.constructor.addEventListener(ConstructorManagerEvent.LAPS_CHANGE, onLapsChange, false, 0, true);
+				GameApplication.app.constructor.addEventListener(ConstructorElementEvent.SELECTED, onConstructorElementSelected, false, 0, true);
+				GameApplication.app.constructor.addEventListener(ConstructorElementEvent.UNSELECTED, onConstructorElementUnSelected, false, 0, true);
+				GameApplication.app.constructor.addEventListener(ConstructorManagerEvent.CONSTRUCTOR_INIT, onConstructoInit, false, 0, true);
+				GameApplication.app.constructor.addEventListener(ConstructorManagerEvent.SCENE_SIZE_CHANGE, onSceneSizeChange, false, 0, true);
+				GameApplication.app.constructor.addEventListener(ConstructorManagerEvent.ELEMENT_MOVE, onConstructorMove, false, 0, true);
+			}
+			
+			private function onConstructorMove(e:ConstructorManagerEvent):void{
+				_currentElement = GameApplication.app.constructor.selectorElement.selection as ConstructorElement;
+				if(_currentElement){
+					xlbl.text = String(Math.round(_currentElement.x));
+					ylbl.text = String(Math.round(_currentElement.y));
+				}
+			}
+			
+			private function onSceneSizeChange(e:ConstructorManagerEvent):void{
+				sceneWidth.text = GameApplication.app.constructor.sceneWidth.toString();
+				sceneHeight.text = GameApplication.app.constructor.sceneHeight.toString();
+			}
+			
+			private function onConstructoInit(e:ConstructorManagerEvent):void{
+				lapscb.selectedIndex = 1;
+				bgcb.selectedIndex = 0;
+				
+				lapscb.textInput.editable = false;
+				bgcb.textInput.editable = false;
+				
+				lapscb.textInput.selectable = false;
+				bgcb.textInput.selectable = false;
+				
+				widthGroup.visible = widthGroup.includeInLayout = false;
+				heightGroup.visible = heightGroup.includeInLayout = false;
+				sizeGroup.visible = sizeGroup.includeInLayout = false;
+				angleGroup.visible = angleGroup.includeInLayout = false;
+			}
+			
+			private function onConstructorElementSelected(event : ConstructorElementEvent) : void {
+				_currentElement = event.element;
+				
+				xGroup.visible = true;
+				yGroup.visible = true;
+				xlbl.text = String(Math.round(_currentElement.x));
+				ylbl.text = String(Math.round(_currentElement.y));
+				
+				if(_currentElement.tagName == SceneElements.ROAD){
+					widthGroup.visible = widthGroup.includeInLayout = true;
+					heightGroup.visible = heightGroup.includeInLayout = true;
+					widthLbl.text = String(Math.round(_currentElement.width));
+					heightLbl.text = String(Math.round(_currentElement.height));
+				}else{
+					widthGroup.visible = widthGroup.includeInLayout = false;
+					heightGroup.visible = heightGroup.includeInLayout = false;
+				}
+				
+				if(_currentElement.tagName == SceneElements.LAYOUTH){
+					sizeGroup.visible = sizeGroup.includeInLayout = true;
+					sizeLbl.text = String(Math.round(_currentElement.width));
+				}else if(_currentElement.tagName == SceneElements.LAYOUTV){
+					sizeGroup.visible = sizeGroup.includeInLayout = true;
+					sizeLbl.text = String(Math.round(_currentElement.height));
+				}else if(_currentElement.tagName == SceneElements.BORDERH){
+					sizeGroup.visible = sizeGroup.includeInLayout = true;
+					sizeLbl.text = String(Math.round(_currentElement.width));
+				}else if(_currentElement.tagName == SceneElements.BORDERV){
+					sizeGroup.visible = sizeGroup.includeInLayout = true;
+					sizeLbl.text = String(Math.round(_currentElement.height));
+				}else{
+					sizeGroup.visible = sizeGroup.includeInLayout = false;
+				}
+				
+				if(_currentElement.tagName == SceneElements.START || _currentElement.tagName == SceneElements.FINISH ||
+					_currentElement.tagName == SceneElements.TRANSITION || _currentElement.tagName == SceneElements.BUILDING1 ||
+					_currentElement.tagName == SceneElements.BUILDING2 || _currentElement.tagName == SceneElements.BUILDING3 ||
+					_currentElement.tagName == SceneElements.BUILDING4 || _currentElement.tagName == SceneElements.GARLAND1 ||
+					_currentElement.tagName == SceneElements.GARLAND2 || _currentElement.tagName == SceneElements.GARLAND3 ||
+					_currentElement.tagName == SceneElements.TREE1 || _currentElement.tagName == SceneElements.TREE2 ||
+					_currentElement.tagName == SceneElements.ADDITIONAL_ZONE || _currentElement.tagName == SceneElements.CAR){
+					angleGroup.visible = angleGroup.includeInLayout = true;
+					angleLbl.text = String(Math.round(_currentElement.rotation));
+				}else{
+					angleGroup.visible = angleGroup.includeInLayout = false;
+				}
+			}
+			
+			private function onConstructorElementUnSelected(event : ConstructorElementEvent) : void {
+				xGroup.visible = false;
+				yGroup.visible = false;
+				widthGroup.visible = widthGroup.includeInLayout = false;
+				heightGroup.visible = heightGroup.includeInLayout = false;
+				sizeGroup.visible = sizeGroup.includeInLayout = false;
+			}
+			
+			private function onLapsChange(e:ConstructorManagerEvent):void{
+				if(e.value == 2){
+					lapscb.selectedIndex = 0;
+				}else if(e.value == 3){
+					lapscb.selectedIndex = 1;
+				}else if(e.value == 5){
+					lapscb.selectedIndex = 2;
+				}else if(e.value == 10){
+					lapscb.selectedIndex = 3;
+				}
+			}
+			
+			private function onBgChange(e:ConstructorManagerEvent):void{
+				if(e.value == 0){
+					bgcb.selectedIndex = 0;
+				}else if(e.value == 1){
+					bgcb.selectedIndex = 1;
+				}else if(e.value == 2){
+					bgcb.selectedIndex = 2;
+				}
+			}
+			
+			private function onElementCreated(e:ConstructorManagerEvent):void{
+				_selector.clear();
+			}
+			
+			private function onArticleSelected(event : ConstructorArticleEvent) : void {
+				_selector.selected(event.article);
+
+				GameApplication.app.constructor.setMode(event.article.constructorMode);
+			}
+			
+			private function onArticlenUnSelected(event : ConstructorArticleEvent) : void {
+				_selector.unselected(event.article);
+			}
+			
+			public function deleteSelectObject():void{
+				GameApplication.app.constructor.deleteSelectObject();
+			}
+
+			protected function onPlay(event:MouseEvent):void
+			{
+				GameApplication.app.constructor.play(GameType.TEST_CONSTRUCTOR);
+			}
+
+			protected function onSave(event:MouseEvent):void
+			{
+				GameApplication.app.constructor.save();
+			}
+			
+			protected function onOpen(event:MouseEvent):void
+			{
+				GameApplication.app.constructor.open();
+			}
+
+			protected function onSaveOnServer(event:MouseEvent):void
+			{
+				GameApplication.app.constructor.shopSaveOnServerPopUp();
+			}
+			
+			private function setBg(bgid:uint):void{
+				GameApplication.app.constructor.setBg(bgid);
+			}
+
+			protected function lapscb_changeHandler(event:IndexChangeEvent):void
+			{
+				if(lapscb.selectedItem && (lapscb.selectedItem as Object).hasOwnProperty("data")){
+					GameApplication.app.constructor.setLaps(lapscb.selectedItem.data);
+				}
+			}
+
+			protected function bgcb_changeHandler(event:IndexChangeEvent):void
+			{
+				if(bgcb.selectedItem && (bgcb.selectedItem as Object).hasOwnProperty("data")){					
+					GameApplication.app.constructor.setBg(bgcb.selectedItem.data);
+				}
+			}
+
+			private function changeSceneSize():void
+			{
+				var sw:Number = Math.min(GameApplication.app.constructor.maxSceneWidth, Math.max(GameApplication.app.constructor.minSceneWidth, int(sceneWidth.text)));
+				var sh:Number = Math.min(GameApplication.app.constructor.maxSceneHeight, Math.max(GameApplication.app.constructor.minSceneHeight, int(sceneHeight.text)));
+			
+				GameApplication.app.constructor.sceneWidth = sw;
+				GameApplication.app.constructor.sceneHeight = sh;
+				
+				sceneWidth.text = GameApplication.app.constructor.sceneWidth.toString();
+				sceneHeight.text = GameApplication.app.constructor.sceneHeight.toString();
+				
+				setBg(bgcb.selectedItem.data);
+			}
+
+			protected function sceneWidth_focusOutHandler(event:FocusEvent):void
+			{
+				changeSceneSize();
+			}
+
+
+			protected function sceneHeight_focusOutHandler(event:FocusEvent):void
+			{
+				changeSceneSize();
+			}
+
+
+			protected function sceneHeight_enterHandler(event:FlexEvent):void
+			{
+				changeSceneSize();
+			}
+
+
+			protected function sceneWidth_enterHandler(event:FlexEvent):void
+			{
+				changeSceneSize();
+			}
+
+
+			protected function xlbl_enterHandler(event:FlexEvent):void
+			{
+				if(_currentElement){
+					_currentElement.x = int(xlbl.text);
+				}
+			}
+
+
+			protected function ylbl_enterHandler(event:FlexEvent):void
+			{
+				if(_currentElement){
+					_currentElement.y = int(ylbl.text);
+				}
+			}
+
+
+			/* protected function angle_enterHandler(event:FlexEvent):void
+			{
+				if(_currentElement){
+					var beAngle:int = 0;
+					if(int(widthLbl.text) >= 90){
+						beAngle = -90;
+					}
+					_currentElement.rotation = beAngle;
+					
+					widthLbl.text = String(beAngle);
+				}
+			} */
+
+			protected function heightLbl_enterHandler(event:FlexEvent):void
+			{
+				var beElementHeight:int = Math.min(GameApplication.app.constructor.sceneHeight, Math.max(int(heightLbl.text), 180));
+				
+				var beElementWidth:int = 180;
+				if(beElementHeight <= 180){
+					beElementWidth = _currentElement.width;
+				}
+				
+				if(_currentElement && _currentElement.tagName == SceneElements.ROAD){
+					var roadMc:MovieClip = new RoadMc();
+					var bitmapData:BitmapData = new BitmapData(roadMc.width, roadMc.height); 
+					bitmapData.draw(roadMc);
+					_currentElement.graphics.clear();
+					_currentElement.graphics.beginBitmapFill(bitmapData, null, true);
+					_currentElement.graphics.drawRect(0, 0, beElementWidth, beElementHeight);
+					_currentElement.graphics.endFill();
+					
+					widthLbl.text = String(Math.round(_currentElement.width));
+					heightLbl.text = String(Math.round(_currentElement.height));
+				}
+			}
+
+
+			protected function widthLbl_enterHandler(event:FlexEvent):void
+			{
+				var beElementWidth:int = Math.min(GameApplication.app.constructor.sceneWidth, Math.max(int(widthLbl.text), 180));
+				var beElementHeight:int = 180;
+				if(beElementWidth <= 180){
+					beElementHeight = _currentElement.height;
+				}
+				
+				if(_currentElement && _currentElement.tagName == SceneElements.ROAD){
+					var roadMc:MovieClip = new RoadMc();
+					var bitmapData:BitmapData = new BitmapData(roadMc.width, roadMc.height); 
+					bitmapData.draw(roadMc);
+					_currentElement.graphics.clear();
+					_currentElement.graphics.beginBitmapFill(bitmapData, null, true);
+					_currentElement.graphics.drawRect(0, 0, beElementWidth, beElementHeight);
+					_currentElement.graphics.endFill();
+					
+					widthLbl.text = String(Math.round(_currentElement.width));
+					heightLbl.text = String(Math.round(_currentElement.height));
+				}
+			}
+
+
+			protected function sizeLbl_enterHandler(event:FlexEvent):void
+			{
+				var beElementHeight:int;				
+				var beElementWidth:int;
+				
+				var fillMc:MovieClip;
+				var bitmapData:BitmapData;
+				
+				if(_currentElement && _currentElement.tagName == SceneElements.LAYOUTH){
+					beElementWidth = Math.min(GameApplication.app.constructor.sceneWidth, Math.max(int(sizeLbl.text), 100));
+					beElementHeight = _currentElement.height;
+					
+					fillMc = new LayoutHMc();
+					bitmapData = new BitmapData(fillMc.width, fillMc.height, true, 0xff0000);
+					bitmapData.draw(fillMc);
+					_currentElement.graphics.clear();
+					_currentElement.graphics.beginBitmapFill(bitmapData, null, true);
+					_currentElement.graphics.drawRect(0, 0, beElementWidth, beElementHeight);
+					_currentElement.graphics.endFill();
+					
+					sizeLbl.text = String(Math.round(_currentElement.width));
+				}else if(_currentElement && _currentElement.tagName == SceneElements.LAYOUTV){
+					beElementHeight = Math.min(GameApplication.app.constructor.sceneHeight, Math.max(int(sizeLbl.text), 100));
+					beElementWidth = _currentElement.width;
+					
+					fillMc = new LayoutVMc();
+					bitmapData = new BitmapData(fillMc.width, fillMc.height, true, 0xff0000); 
+					bitmapData.draw(fillMc);
+					_currentElement.graphics.clear();
+					_currentElement.graphics.beginBitmapFill(bitmapData, null, true);
+					_currentElement.graphics.drawRect(0, 0, beElementWidth, beElementHeight);
+					_currentElement.graphics.endFill();
+					
+					sizeLbl.text = String(Math.round(_currentElement.height));
+				}else if(_currentElement && _currentElement.tagName == SceneElements.BORDERH){
+					beElementWidth = Math.min(GameApplication.app.constructor.sceneWidth, Math.max(int(sizeLbl.text), 50));
+					beElementHeight = 10;
+					
+					fillMc = new BorderHMc();
+					bitmapData = new BitmapData(fillMc.width, fillMc.height, true, 0xff0000);
+					bitmapData.draw(fillMc);
+					_currentElement.graphics.clear();
+					_currentElement.graphics.beginBitmapFill(bitmapData, null, true);
+					_currentElement.graphics.drawRect(0, 0, beElementWidth, beElementHeight);
+					_currentElement.graphics.endFill();
+					
+					sizeLbl.text = String(Math.round(_currentElement.width));
+				}else if(_currentElement && _currentElement.tagName == SceneElements.BORDERV){
+					beElementHeight = Math.min(GameApplication.app.constructor.sceneHeight, Math.max(int(sizeLbl.text), 50));
+					beElementWidth = 10;
+					
+					fillMc = new BorderVMc();
+					bitmapData = new BitmapData(fillMc.width, fillMc.height, true, 0xff0000);
+					bitmapData.draw(fillMc);
+					_currentElement.graphics.clear();
+					_currentElement.graphics.beginBitmapFill(bitmapData, null, true);
+					_currentElement.graphics.drawRect(0, 0, beElementWidth, beElementHeight);
+					_currentElement.graphics.endFill();
+					
+					sizeLbl.text = String(Math.round(_currentElement.height));
+				}
+			}
+
+
+			protected function angleLbl_enterHandler(event:FlexEvent):void
+			{
+				var beAngle:int = Math.min(360, Math.max(int(angleLbl.text), -360));
+				
+				if(beAngle % 90 != 0){
+					GameApplication.app.popuper.showInfoPopUp("Неверно задан угол");
+				}
+				
+				if(_currentElement && 
+					(_currentElement.tagName == SceneElements.START || _currentElement.tagName == SceneElements.FINISH ||
+						_currentElement.tagName == SceneElements.TRANSITION || _currentElement.tagName == SceneElements.BUILDING1 ||
+						_currentElement.tagName == SceneElements.BUILDING2 || _currentElement.tagName == SceneElements.BUILDING3 ||
+						_currentElement.tagName == SceneElements.BUILDING4 || _currentElement.tagName == SceneElements.GARLAND1 ||
+						_currentElement.tagName == SceneElements.GARLAND2 || _currentElement.tagName == SceneElements.GARLAND3 ||
+						_currentElement.tagName == SceneElements.TREE1 || _currentElement.tagName == SceneElements.TREE2 ||
+						_currentElement.tagName == SceneElements.ADDITIONAL_ZONE || _currentElement.tagName == SceneElements.CAR)){
+					
+					_currentElement.rotation = beAngle;
+					
+					
+					angleLbl.text = String(Math.round(_currentElement.rotation));
+				}
+			}
+
+
+			protected function vslider1_changeHandler(event:Event):void
+			{
+				GameApplication.app.constructor.setContentScale(scaleSlider.value / 100);
+			}
+
+		]]>
+	</fx:Script>
+	
+	<s:VGroup height="100%" gap="2">		
+		<s:HGroup width="100%" verticalAlign="middle" horizontalAlign="left">
+			<s:Label text="Фон:" color="0xffffff" width="40"/>
+			<s:ComboBox id="bgcb" change="bgcb_changeHandler(event)" dataProvider="{bgCollection}" openOnInput="false" focusEnabled="false" width="85" rollOverColor="0x999999" color="0xffffff" selectionColor="0xcccccc" contentBackgroundColor="0x666666" focusAlpha="0" selectedIndex="0" visible="false" includeInLayout="false"/>
+			<s:HGroup verticalAlign="middle" visible="true" includeInLayout="true">
+				<s:TextInput id="sceneWidth" text="{GameApplication.app.constructor.sceneWidth}" selectable="{true}" editable="{true}" width="35" focusAlpha="0" color="0xffffff" contentBackgroundColor="0x666666" maxChars="4" focusOut="sceneWidth_focusOutHandler(event)" enter="sceneWidth_enterHandler(event)"/>
+				<s:Label text="x" color="0xffffff"/>
+				<s:TextInput id="sceneHeight" text="{GameApplication.app.constructor.sceneHeight}" selectable="{true}" editable="{true}" width="30" focusAlpha="0" color="0xffffff" contentBackgroundColor="0x666666" maxChars="4" focusOut="sceneHeight_focusOutHandler(event)" enter="sceneHeight_enterHandler(event)"/>
+			</s:HGroup>
+		</s:HGroup>
+		
+		<s:HGroup width="100%" verticalAlign="middle" horizontalAlign="left">
+			<s:Label text="Круги:" color="0xffffff" width="40"/>
+			<s:ComboBox id="lapscb" change="lapscb_changeHandler(event)" dataProvider="{lapsCollection}" openOnInput="false" focusEnabled="false" width="85" rollOverColor="0x999999" color="0xffffff" selectionColor="0xcccccc" contentBackgroundColor="0x666666" focusAlpha="0" selectedIndex="0"/>
+		</s:HGroup>		
+	</s:VGroup>
+	
+	<s:VGroup width="100%" height="100%">
+		<s:HGroup id="xGroup" width="100%" verticalAlign="middle" horizontalAlign="left" visible="false">
+			<s:Label text="X:" color="0xffffff" width="40"/>
+			<s:TextInput id="xlbl" focusEnabled="false" width="60" color="0xffffff" contentBackgroundColor="0x666666" enter="xlbl_enterHandler(event)"/>
+		</s:HGroup>
+		<s:HGroup id="yGroup" width="100%" verticalAlign="middle" horizontalAlign="left" visible="false">
+			<s:Label text="Y:" color="0xffffff" width="40"/>
+			<s:TextInput id="ylbl" focusEnabled="false" width="60" color="0xffffff" contentBackgroundColor="0x666666" enter="ylbl_enterHandler(event)"/>
+		</s:HGroup>
+		<s:HGroup id="widthGroup" width="100%" verticalAlign="middle" horizontalAlign="left" visible="false">
+			<s:Label text="W:" color="0xffffff" width="40"/>
+			<s:TextInput id="widthLbl" focusEnabled="false" width="60" color="0xffffff" contentBackgroundColor="0x666666" enter="widthLbl_enterHandler(event)"/>
+		</s:HGroup>
+		<s:HGroup id="heightGroup" width="100%" verticalAlign="middle" horizontalAlign="left" visible="false">
+			<s:Label text="H:" color="0xffffff" width="40"/>
+			<s:TextInput id="heightLbl" focusEnabled="false" width="60" color="0xffffff" contentBackgroundColor="0x666666" enter="heightLbl_enterHandler(event)"/>
+		</s:HGroup>
+		<s:HGroup id="sizeGroup" width="100%" verticalAlign="middle" horizontalAlign="left" visible="false">
+			<s:Label text="Длина:" color="0xffffff" width="40"/>
+			<s:TextInput id="sizeLbl" focusEnabled="false" width="60" color="0xffffff" contentBackgroundColor="0x666666" enter="sizeLbl_enterHandler(event)"/>
+		</s:HGroup>
+		<s:HGroup id="angleGroup" width="100%" verticalAlign="middle" horizontalAlign="left" visible="false">
+			<s:Label text="Угол:" color="0xffffff" width="40"/>
+			<s:TextInput id="angleLbl" focusEnabled="false" width="60" color="0xffffff" contentBackgroundColor="0x666666" enter="angleLbl_enterHandler(event)"/>
+		</s:HGroup>
+	</s:VGroup>
+	
+	<s:VGroup verticalAlign="middle" gap="12">
+		<s:HGroup>
+			<buttonswf:ButtonMXML iconClass="{IconConstructorPlay}" toolTip="Проверить карту" click="onPlay(event)"/>
+		</s:HGroup>
+		<s:HGroup>
+			<buttonswf:ButtonMXML iconClass="{IconConstructorRemove}" toolTip="Удалить выделенный объект" click="{deleteSelectObject()}"/>		
+			<buttonswf:ButtonMXML iconClass="{IconConstructorOpen}" toolTip="Открыть на своем компьютере" click="onOpen(event)"/>
+		</s:HGroup>
+		<s:HGroup>
+			<buttonswf:ButtonMXML iconClass="{IconConstructorSave}" toolTip="Сохранить на своем компьютере" click="onSave(event)"/>
+			<!--<buttonswf:ButtonMXML iconClass="{IconConstructorSave}" toolTip="Сохранить на сервер" click="onSaveOnServer(event)"/>-->
+		</s:HGroup>
+	</s:VGroup>
+	<s:VSlider id="scaleSlider" minimum="10" maximum="100" value="100" change="vslider1_changeHandler(event)"/>
+	<s:Group width="100%"/>
+	<s:TileGroup width="100%" height="120">
+		<article:ConstructorArticle id="a1" iconClass="{RoadMc}" constructorMode="{ConstructorCreateMode.ROAD}" toolTip="Дорога"/>		
+		<article:ConstructorArticle id="a2" iconClass="{StartMc}" constructorMode="{ConstructorCreateMode.START}" toolTip="Зона старта"/>
+		<article:ConstructorArticle id="a3" iconClass="{FinishMc}" constructorMode="{ConstructorCreateMode.FINISH}" toolTip="Зона финиша"/>
+		<article:ConstructorArticle id="a18" iconClass="{AdditionalZoneMc}" constructorMode="{ConstructorCreateMode.ADDITIONAL_ZONE}" toolTip="Зона контроля прохождения"/>
+		<article:ConstructorArticle id="a4" iconClass="{TransitionMc}" constructorMode="{ConstructorCreateMode.TRANSITION}" toolTip="Переход"/>
+		<article:ConstructorArticle id="a5" iconClass="{LayoutHMc}" constructorMode="{ConstructorCreateMode.LAYOUTH}" toolTip="Разметка"/>
+		<article:ConstructorArticle id="a6" iconClass="{LayoutVMc}" constructorMode="{ConstructorCreateMode.LAYOUTV}" toolTip="Разметка"/>
+		
+		<article:ConstructorArticle id="a7" iconClass="{Building1Mc}" constructorMode="{ConstructorCreateMode.BUILDING1}" toolTip="Здание"/>
+		<article:ConstructorArticle id="a8" iconClass="{Building2Mc}" constructorMode="{ConstructorCreateMode.BUILDING2}" toolTip="Здание"/>
+		<article:ConstructorArticle id="a9" iconClass="{Building3Mc}" constructorMode="{ConstructorCreateMode.BUILDING3}" toolTip="Здание"/>
+		<article:ConstructorArticle id="a10" iconClass="{Building4Mc}" constructorMode="{ConstructorCreateMode.BUILDING4}" toolTip="Здание"/>
+		<article:ConstructorArticle id="a11" iconClass="{Light1Mc}" constructorMode="{ConstructorCreateMode.LIGHT1}" toolTip="Фонарь"/>
+		<article:ConstructorArticle id="a12" iconClass="{Light2Mc}" constructorMode="{ConstructorCreateMode.LIGHT2}" toolTip="Фонарь"/>
+		<article:ConstructorArticle id="a13" iconClass="{Garland1Mc}" constructorMode="{ConstructorCreateMode.GARLAND1}" toolTip="Фонари"/>
+		<article:ConstructorArticle id="a14" iconClass="{Garland2Mc}" constructorMode="{ConstructorCreateMode.GARLAND2}" toolTip="Фонари"/>
+		<article:ConstructorArticle id="a15" iconClass="{Garland3Mc}" constructorMode="{ConstructorCreateMode.GARLAND3}" toolTip="Фонари"/>
+		<article:ConstructorArticle id="a16" iconClass="{Tree1Mc}" constructorMode="{ConstructorCreateMode.TREE1}" toolTip="Дерево"/>
+		<article:ConstructorArticle id="a17" iconClass="{Tree2Mc}" constructorMode="{ConstructorCreateMode.TREE2}" toolTip="Дерево"/>
+		
+		<article:ConstructorArticle id="a19" iconClass="{BorderHMc}" constructorMode="{ConstructorCreateMode.BORDERH}" toolTip="Бордюр"/>
+		<article:ConstructorArticle id="a20" iconClass="{BorderVMc}" constructorMode="{ConstructorCreateMode.BORDERV}" toolTip="Бордюр"/>
+		<article:ConstructorArticle id="a21" iconClass="{Car}" constructorMode="{ConstructorCreateMode.CAR}" toolTip="Место появления машины"/>
+	</s:TileGroup>
+	<buttonswf:ButtonMXMLExit toolTip="Выход" iconClass="{ExitBtn}" width="60" height="38" click="onExit(event)"/>
+</s:HGroup>

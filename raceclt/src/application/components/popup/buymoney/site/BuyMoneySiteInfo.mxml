@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark" initialize="group1_initializeHandler(event)"
+		 xmlns:mx="library://ns.adobe.com/flex/mx" top="10" width="450" height="100%" xmlns:button="application.components.button.*" xmlns:money="application.gamecontainer.persinfobar.money.*" xmlns:buymoney="application.components.popup.buymoney.*" xmlns:iconswf="application.components.iconswf.*">
+	
+	<fx:Script>
+		<![CDATA[
+			import application.GameApplication;
+			
+			import mx.events.FlexEvent;
+			[Bindable]
+			public var text:String = "";
+			public var closeFunction:Function;
+			
+			protected function buy20_clickHandler(event:MouseEvent):void{
+				GameApplication.app.apimanager.buyMoney(20, 200);
+				closeFunction && closeFunction();
+			}
+			
+			protected function buy70_clickHandler(event:MouseEvent):void{
+				GameApplication.app.apimanager.buyMoney(70, 800);
+				closeFunction && closeFunction();
+			}
+			
+			
+			protected function buy100_clickHandler(event:MouseEvent):void{
+				GameApplication.app.apimanager.buyMoney(100, 1300);
+				closeFunction && closeFunction();
+			}
+			
+			
+			protected function buy350_clickHandler(event:MouseEvent):void{
+				GameApplication.app.apimanager.buyMoney(350, 4600);
+				closeFunction && closeFunction();
+			}
+			
+
+			protected function buy1000_clickHandler(event:MouseEvent):void
+			{
+				GameApplication.app.apimanager.buyMoney(1000, 13000);
+				closeFunction && closeFunction();
+			}
+
+			protected function buy3000_clickHandler(event:MouseEvent):void
+			{
+				GameApplication.app.apimanager.buyMoney(3000, 46000);
+				closeFunction && closeFunction();
+			}
+
+			protected function group1_initializeHandler(event:FlexEvent):void
+			{
+				if(GameApplication.app.models.options.action > 0){
+					actionGroup.visible = true;
+					actionLbl.text = "+ " + GameApplication.app.models.options.action + "%";
+					
+					money1.actionMoneyReal = Math.floor(money1.moneyReal * (GameApplication.app.models.options.action / 100));
+					money2.actionMoneyReal = Math.floor(money2.moneyReal * (GameApplication.app.models.options.action / 100));
+					money3.actionMoneyReal = Math.floor(money3.moneyReal * (GameApplication.app.models.options.action / 100));
+					money4.actionMoneyReal = Math.floor(money4.moneyReal * (GameApplication.app.models.options.action / 100));
+					money5.actionMoneyReal = Math.floor(money5.moneyReal * (GameApplication.app.models.options.action / 100));
+					money6.actionMoneyReal = Math.floor(money6.moneyReal * (GameApplication.app.models.options.action / 100));
+					money7.actionMoneyReal = Math.floor(money7.moneyReal * (GameApplication.app.models.options.action / 100));
+					money8.actionMoneyReal = Math.floor(money8.moneyReal * (GameApplication.app.models.options.action / 100));
+				}else{
+					actionGroup.visible = false;
+				}
+			}
+
+
+			protected function buy5000_clickHandler(event:MouseEvent):void
+			{
+				GameApplication.app.apimanager.buyMoney(5000, 80000);
+				closeFunction && closeFunction();
+			}
+
+
+			protected function buy10000_clickHandler(event:MouseEvent):void
+			{
+				GameApplication.app.apimanager.buyMoney(10000, 170000);
+				closeFunction && closeFunction();
+			}
+		]]>
+	</fx:Script>
+	
+	<s:Group id="actionGroup" width="80" height="60" left="-40" top="-50" toolTip="Акция на покупку реалов" visible="false">
+		<iconswf:IconMXML iconClass="{Action}"/>
+		<s:Label id="actionLbl" top="32" width="100%" textAlign="center" fontWeight="bold" color="0xff3300" fontSize="20"/>
+	</s:Group>
+	
+	<s:VGroup width="100%" height="100%" horizontalAlign="center" gap="10" paddingLeft="20">
+		<s:Label text="Купить валюту!" width="100%" color="0xffffff" fontSize="16" fontWeight="normal" textAlign="center"/>
+		<s:VGroup horizontalAlign="right" gap="10">			
+			<s:HGroup verticalAlign="middle">
+				<money:MoneyRealWithAction moneyReal="200" id="money1"/>
+				<button:GameButton id="buy20" label="за 20 рублей" width="150" click="buy20_clickHandler(event)"/>
+				<s:Label text="выгода" width="100%" color="0xffffff" fontSize="15" fontWeight="normal" textAlign="center"/>
+				<money:MoneyReal moneyReal="40" width="90"/>
+			</s:HGroup>
+			<s:HGroup verticalAlign="middle">
+				<money:MoneyRealWithAction moneyReal="800" id="money2"/>
+				<button:GameButton id="buy70" label="за 70 рублей" width="150" click="buy70_clickHandler(event)"/>
+				<s:Label text="выгода" width="100%" color="0xffffff" fontSize="15" fontWeight="normal" textAlign="center"/>
+				<money:MoneyReal moneyReal="190" width="90"/>
+			</s:HGroup>
+			<s:HGroup verticalAlign="middle">
+				<money:MoneyRealWithAction moneyReal="1300" id="money3"/>
+				<button:GameButton id="buy100" label="за 100 рублей" width="150" click="buy100_clickHandler(event)"/>
+				<s:Label text="выгода" width="100%" color="0xffffff" fontSize="15" fontWeight="normal" textAlign="center"/>
+				<money:MoneyReal moneyReal="220" width="90"/>
+			</s:HGroup>
+			<s:HGroup verticalAlign="middle">
+				<money:MoneyRealWithAction moneyReal="4600" id="money4"/>
+				<button:GameButton id="buy350" label="за 350 рублей" width="150" click="buy350_clickHandler(event)"/>
+				<s:Label text="выгода" width="100%" color="0xffffff" fontSize="15" fontWeight="normal" textAlign="center"/>
+				<money:MoneyReal moneyReal="670" width="90"/>
+			</s:HGroup>
+			<s:HGroup verticalAlign="middle">
+				<money:MoneyRealWithAction moneyReal="14000" id="money5"/>
+				<button:GameButton id="buy1000" label="за 1000 рублей" width="150" click="buy1000_clickHandler(event)"/>
+				<s:Label text="выгода" width="100%" color="0xffffff" fontSize="15" fontWeight="normal" textAlign="center"/>
+				<money:MoneyReal moneyReal="2000" width="90"/>
+			</s:HGroup>
+			<s:HGroup verticalAlign="middle">
+				<money:MoneyRealWithAction moneyReal="46000" id="money6"/>
+				<button:GameButton id="buy3000" label="за 3000 рублей" width="150" click="buy3000_clickHandler(event)"/>
+				<s:Label text="выгода" width="100%" color="0xffffff" fontSize="15" fontWeight="normal" textAlign="center"/>
+				<money:MoneyReal moneyReal="10000" width="90"/>
+			</s:HGroup>
+			<s:HGroup verticalAlign="middle">
+				<money:MoneyRealWithAction moneyReal="80000" id="money7"/>
+				<button:GameButton id="buy5000" label="за 5000 рублей" width="150" click="buy5000_clickHandler(event)"/>
+				<s:Label text="выгода" width="100%" color="0xffffff" fontSize="15" fontWeight="normal" textAlign="center"/>
+				<money:MoneyReal moneyReal="15000" width="90"/>
+			</s:HGroup>
+			<s:HGroup verticalAlign="middle" visible="false" includeInLayout="false">
+				<money:MoneyRealWithAction moneyReal="170000" id="money8"/>
+				<button:GameButton id="buy10000" label="за 10000 рублей" width="150" click="buy10000_clickHandler(event)"/>
+				<s:Label text="выгода" width="100%" color="0xffffff" fontSize="15" fontWeight="normal" textAlign="center"/>
+				<money:MoneyReal moneyReal="30000" width="90"/>
+			</s:HGroup>
+		</s:VGroup>
+		<buymoney:ExchangeComponent/>
+		<s:Label text="* на ваш счет деньги поступят в течение нескольких минут после пополнения" width="100%" color="0xffffff" fontSize="10" fontWeight="normal" textAlign="left"/>
+	</s:VGroup>
+</s:Group>

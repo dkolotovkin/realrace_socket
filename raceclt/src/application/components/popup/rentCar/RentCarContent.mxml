@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark"
+		 xmlns:mx="library://ns.adobe.com/flex/mx" top="15" width="100%" height="100%" xmlns:button="application.components.button.*" xmlns:money="application.gamecontainer.persinfobar.money.*" xmlns:article="application.gamecontainer.scene.catalog.article.*">	
+	
+	<fx:Script>
+		<![CDATA[
+			import application.GameApplication;
+			import application.gamecontainer.scene.catalog.article.LibraryMovieClass;
+			
+			import mx.events.ColorPickerEvent;
+			
+			import utils.brush.BrushManager;
+			import utils.models.ItemPrototype;
+			import utils.models.car.CarPrototypeModel;
+			import utils.models.item.ItemType;
+			import utils.user.VipType;
+			
+			public var prototype:CarPrototypeModel;
+			
+			private var carMc:MovieClip;
+			
+			override protected function createChildren():void{
+				super.createChildren();
+				
+				if(prototype){
+					var carMcClass:Class = LibraryMovieClass.getCarClassByCarPrototypeID(prototype.id);
+					carMc = new carMcClass();
+					carMc.scaleX = carMc.scaleY = 0.6;
+					carUI.addChild(carMc);
+					
+					carUI.width = carMc.width;
+					carUI.height = carMc.height;
+					
+					colorPicker.selectedColor = 0xffffff;
+				}
+			}
+			
+			
+			protected function onClick(event:MouseEvent):void
+			{
+				GameApplication.app.shopmanager.rentCar((prototype as CarPrototypeModel).id, colorPicker.selectedColor);
+			}
+			
+			protected function cancelbtn_clickHandler(event:MouseEvent):void
+			{
+				GameApplication.app.popuper.hidePopUp();
+			}
+			
+			protected function colorPicker_changeHandler(event:ColorPickerEvent):void
+			{
+				BrushManager.brush(colorPicker.selectedColor, carMc["mc"]);
+			}
+			
+		]]>
+	</fx:Script>
+	
+	<s:VGroup width="100%" height="100%" horizontalAlign="center">
+		<s:Label text="Вы собираетесь арендовать автомобиль на 1 день!" width="100%" color="0xffffff" fontSize="16" fontWeight="normal" textAlign="center"/>
+		
+		<s:HGroup verticalAlign="middle" width="100%">
+			<s:Label text="Выберите цвет:" color="0xFF9933" fontSize="14" fontWeight="normal"/>
+			<mx:ColorPicker id="colorPicker" focusAlpha="0" change="colorPicker_changeHandler(event)"/>
+		</s:HGroup>
+		<mx:UIComponent id="carUI"/>
+		<s:HGroup>
+			<button:GameButton id="okbtn" label="арендовать" click="onClick(event)"/>
+			<button:GameButton id="cancelbtn" label="отмена" click="cancelbtn_clickHandler(event)"/>			
+		</s:HGroup>
+	</s:VGroup>
+</s:Group>

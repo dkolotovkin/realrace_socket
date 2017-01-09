@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:DataRenderer xmlns:fx="http://ns.adobe.com/mxml/2009" buttonMode="true" implements="utils.flasher.IFlashing"
+				xmlns:s="library://ns.adobe.com/flex/spark" click="datarenderer1_clickHandler(event)"
+				xmlns:mx="library://ns.adobe.com/flex/mx" xmlns:buttonswf="application.components.buttonswf.*">
+	<s:layout>
+		<s:BasicLayout/>
+	</s:layout>
+	<fx:Script>
+		<![CDATA[
+			import application.GameApplication;
+			
+			import mx.binding.utils.BindingUtils;
+			import mx.binding.utils.ChangeWatcher;
+			
+			import utils.chat.Flasher;
+			import utils.flasher.IFlashing;
+			import utils.models.chat.ChatTabModel;
+			
+			private var flasher:Flasher = new Flasher(this as IFlashing);
+			
+			private var chatTabModel:ChatTabModel;
+			
+			private var flashWatcher:ChangeWatcher;
+			private var selectWatcher:ChangeWatcher;
+			
+			private var _flash:Boolean;
+			
+			public function get flash():Boolean{
+				return _flash;
+			}
+			
+			public function set flash(value:Boolean):void{
+				if (_flash != value){
+					_flash = value;
+					updateState();
+				}	
+			}
+
+			override public function set data(value:Object):void{
+				super.data = value;
+				
+				if(flashWatcher){
+					flashWatcher.unwatch();
+				}
+				if(selectWatcher){
+					selectWatcher.unwatch();
+				}
+				
+				chatTabModel = value as ChatTabModel;
+				if(chatTabModel){
+					label.text = chatTabModel.title;
+					
+					if(chatTabModel.roomId < 0){
+						toolTip = "Диалог с " + chatTabModel.title;
+						closeBtn.visible = true;
+						labelGroup.paddingRight = 20;
+					}else{
+						toolTip = chatTabModel.title;
+						closeBtn.visible = false;
+						labelGroup.paddingRight = 8;
+					}
+					
+					flashWatcher = BindingUtils.bindSetter(onChangeFlash, chatTabModel, "flash");
+					selectWatcher = BindingUtils.bindSetter(onChangeSelected, chatTabModel, "selected");
+					
+					updateState();
+				}
+			}
+			
+			private function onChangeFlash(value:Boolean):void{
+				if (value){						
+					flasher.start(200);
+				} else{						
+					flasher.stop();
+				}
+				updateState();
+			}
+			
+			private function onChangeSelected(value:Boolean):void{
+				if(value){
+					if(chatTabModel){
+						chatTabModel.flash = false;
+					}
+				}
+				updateState();
+			}
+			
+			private function updateState() : void {
+				if(chatTabModel){					
+					if (chatTabModel.selected){
+						currentState = "selected";
+						label.setStyle("color", 0xFF9933);					
+					} else if(flash){
+						currentState = "flash";
+						label.setStyle("color", 0xFF3300);
+					}else{
+						currentState = "normal";
+						label.setStyle("color", 0xdddddd);
+					}
+				}
+			}
+
+			protected function closeBtn_clickHandler(event:MouseEvent):void
+			{
+				if(chatTabModel){
+					GameApplication.app.gameContainer.chat.removeRoomByID(chatTabModel.roomId);
+				}
+			}
+
+			protected function datarenderer1_clickHandler(event:MouseEvent):void
+			{
+				if(chatTabModel){
+					GameApplication.app.gameContainer.chat.selectRoom(chatTabModel.roomId);
+				}
+			}
+		]]>
+	</fx:Script>
+	
+	<s:states>
+		<s:State name="normal" />
+		<s:State name="selected" />
+		<s:State name="flash" />
+	</s:states>
+	
+	<s:Rect includeIn="normal" width="100%"  height="100%" topRightRadiusX="4" topRightRadiusY="4" topLeftRadiusX="4" topLeftRadiusY="4">
+		<s:stroke>		
+			<s:SolidColorStroke color="0x333333" alpha=".7" weight="1" pixelHinting= "true" />
+		</s:stroke>
+		<s:fill>
+			<s:SolidColor color="0x5F6273" alpha=".8"/>
+		</s:fill>
+	</s:Rect>
+	
+	<s:Rect includeIn="flash" width="100%"  height="100%" topRightRadiusX="4" topRightRadiusY="4" topLeftRadiusX="4" topLeftRadiusY="4">
+		<s:stroke>	
+			<s:SolidColorStroke color="0xFF9900" weight="1" pixelHinting= "true" />
+		</s:stroke>
+		<s:fill>
+			<s:SolidColor color="0xFFCC33" />
+		</s:fill>
+	</s:Rect>
+	
+	<s:Rect includeIn="selected" width="100%" height="100%" topRightRadiusX="4" topRightRadiusY="4" topLeftRadiusX="4" topLeftRadiusY="4">
+		<s:stroke>		
+			<s:SolidColorStroke color="0x333333" alpha=".7" weight="1" pixelHinting= "true" />
+		</s:stroke>
+		<s:fill>
+			<s:SolidColor color="0x5F6273" alpha=".95"/>
+		</s:fill>
+	</s:Rect>
+	
+	<s:HGroup id="labelGroup" width="100%" height="100%" verticalAlign="middle" paddingLeft="8" paddingRight="20">
+		<s:Label id="label" color="0xdddddd" fontSize="11" maxDisplayedLines="1" width="100%" mouseEnabled="false" mouseChildren="false"/>
+	</s:HGroup>
+	<s:Group id="closeBtnGroup" right="3" top="3">
+		<buttonswf:ButtonMXML id="closeBtn" iconClass="{IconButCloseTab}" click="closeBtn_clickHandler(event)"/>
+	</s:Group>
+</s:DataRenderer>

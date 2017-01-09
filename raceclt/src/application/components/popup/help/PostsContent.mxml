@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark" creationComplete="group1_creationCompleteHandler(event)"
+		 xmlns:mx="library://ns.adobe.com/flex/mx" top="5" width="100%" height="100%" xmlns:button="application.components.button.*" xmlns:money="application.gamecontainer.persinfobar.money.*" xmlns:preloader="application.components.preloader.*">
+	
+	<fx:Script>
+		<![CDATA[
+			import application.GameApplication;
+			import application.components.useritem.OnlinePopularUserItem;
+			
+			import mx.events.FlexEvent;
+			
+			import utils.protocol.ProtocolKeys;
+			import utils.user.User;			
+			
+			protected function group1_creationCompleteHandler(event:FlexEvent):void
+			{			
+				GameApplication.app.userinfomanager.getPosts(onGetPosts);
+			}
+			
+			private function onGetPosts(posts:Object):void{
+				var adminUsers:Array = posts[ProtocolKeys.ADMIN_USERS];
+				var moderatorUsers:Array = posts[ProtocolKeys.MODERATOR_USERS];
+				
+				for(var i:int = 0; i < adminUsers.length; i++){
+					var auser:OnlinePopularUserItem = new OnlinePopularUserItem();
+					auser.buttonMode = true;
+					auser.user = User.createFromObject(adminUsers[i]);
+					adminUsersGroup && adminUsersGroup.addElement(auser);
+				}
+				for(var j:int = 0; j < moderatorUsers.length; j++){
+					var muser:OnlinePopularUserItem = new OnlinePopularUserItem();
+					muser.buttonMode = true;
+					muser.user = User.createFromObject(moderatorUsers[j]);
+					moderatorUsersGroup && moderatorUsersGroup.addElement(muser);
+				}
+				preloader.includeInLayout = preloader.visible = false;
+				if(adminUsers.length > 0 || moderatorUsers.length > 0){
+					scroller.includeInLayout = scroller.visible = true;
+				}else{
+					noposts.includeInLayout = noposts.visible = true;
+				}
+			}			
+		]]>
+	</fx:Script>
+	
+	<s:VGroup width="100%" height="100%">
+		<preloader:PreLoaderCircle id="preloader" text="Загрузка должностей..."/>
+		<s:Scroller id="scroller" width="100%" height="100%" includeInLayout="false" visible="false">
+			<s:VGroup width="100%">
+				<s:Label text="Администраторы:" width="100%" textAlign="center" color="0xFF9933" fontSize="14" fontWeight="normal"/>
+				<s:TileGroup id="adminUsersGroup"/>
+				<s:Label text="Модераторы:" width="100%" textAlign="center" color="0xFF9933" fontSize="14" fontWeight="normal"/>
+				<s:TileGroup id="moderatorUsersGroup"/>
+			</s:VGroup>
+		</s:Scroller>
+		<s:HGroup id="noposts" width="100%" height="100%" horizontalAlign="center" verticalAlign="middle" includeInLayout="false" visible="false">
+			<s:Label fontSize="12" width="100%" textAlign="center" color="0xcccccc" text="Нет ни одной должности"/>
+		</s:HGroup>
+	</s:VGroup>
+</s:Group>

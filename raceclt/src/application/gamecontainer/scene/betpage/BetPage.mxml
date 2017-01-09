@@ -1,0 +1,108 @@
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" implements="utils.interfaces.ISceneContent"
+		 xmlns:s="library://ns.adobe.com/flex/spark" width="100%" height="100%" initialize="onInit(event)"
+		 xmlns:mx="library://ns.adobe.com/flex/mx" xmlns:iconswf="application.components.iconswf.*" xmlns:catalog="application.gamecontainer.scene.catalog.*" xmlns:iteminfo="application.gamecontainer.scene.catalog.iteminfo.*" xmlns:bar="application.gamecontainer.scene.catalog.bar.*" xmlns:input="application.gamecontainer.chat.input.*" xmlns:button="application.components.button.*" xmlns:money="application.gamecontainer.persinfobar.money.*">
+	<fx:Script>
+		<![CDATA[
+			import application.GameApplication;
+			import application.components.popup.help.bet.PopUpHelpBet;
+			import application.gamecontainer.scene.betpage.betgameitem.BetGameItem;
+			
+			import mx.events.FlexEvent;
+			
+			import utils.game.betroominfo.GameBetRoomInfo;
+			import utils.interfaces.ISceneContent;
+			
+			private var _sid:int = -1;
+			
+			protected function onInit(event:FlexEvent):void{
+				_sid = setInterval(updateBetGames, 5000);
+				updateBetGames();
+				
+				addWarning();
+			}
+			
+			private function addWarning():void{
+				var spacer:Spacer = new Spacer();
+				spacer.height = 70;
+				games.addElement(spacer);
+				var l:Label = new Label();
+				l.setStyle("color", 0xffffff);
+				l.text = "Нет доступных предложений. Дождитесь нового предложения или создайте свою игру..."
+				games.addElement(l);
+			}
+			
+			public function updateBetGames():void{
+				GameApplication.app.gamemanager.getBetGamesInfo(onGetRooms);
+			} 
+			
+			private function onGetRooms(rooms:Array):void{ 
+				games.removeAllElements();				
+				var addrooms:Boolean = false;
+				for(var i:uint; i < rooms.length; i++){
+					if((rooms[i] as GameBetRoomInfo).time > 3){
+						var item:BetGameItem = new BetGameItem();
+						item.roomInfo = rooms[i];
+						games.addElement(item);
+						addrooms = true;
+					}
+				}
+				
+				if (!addrooms){
+					addWarning();
+				}
+			}
+			
+			public function onHide():void{
+				if (_sid != -1){
+					clearInterval(_sid);
+					_sid = -1;
+				}
+				games.removeAllElements();
+			}
+			
+			protected function onBack(event:MouseEvent):void{
+				GameApplication.app.navigator.goHome();
+				onHide();
+			}
+			
+
+			protected function onCreate(event:MouseEvent):void
+			{
+//				GameApplication.app.popuper.show(new PopUpCreateBetGame());
+			}
+			
+			protected function showHelp(event:MouseEvent):void
+			{
+				GameApplication.app.popuper.show(new PopUpHelpBet());
+			}
+
+		]]>
+	</fx:Script>
+	
+	<s:Rect width="100%" height="100%">
+		<s:fill>
+			<s:RadialGradient>
+				<s:entries>
+					<s:GradientEntry color="0x000000" ratio="0.00" alpha="1"/>
+					<s:GradientEntry color="0x020F0F" ratio="1" alpha="1"/> 
+				</s:entries>
+			</s:RadialGradient>
+		</s:fill>
+	</s:Rect>
+	
+	<s:VGroup width="100%" height="100%" paddingLeft="70" paddingRight="70" paddingTop="35" paddingBottom="35">
+		<s:Label width="100%" textAlign="center" text="Платные забеги" fontSize="30" color="0xFFEB3C" fontWeight="bold" fontStyle="italic"/>
+		<s:HGroup verticalAlign="middle" width="100%" horizontalAlign="center" click="showHelp(event)" buttonMode="true">
+			<s:Label height="13" textDecoration="underline" fontSize="12" color="0xFFFFCC" text="Правила платных забегов"/>		
+		</s:HGroup>
+		<s:Scroller width="100%" height="100%">
+			<s:VGroup id="games" width="100%" height="100%" horizontalAlign="center"/>
+		</s:Scroller>
+		<mx:Spacer height="10"/>
+		<s:HGroup verticalAlign="middle" width="100%">
+			<button:GameButton id="createbtn" label="создать игру" click="onCreate(event)"/>
+			<mx:Spacer width="100%"/>
+			<button:GameButton id="back" label="назад" click="onBack(event)"/>
+		</s:HGroup>
+	</s:VGroup>
+</s:Group>

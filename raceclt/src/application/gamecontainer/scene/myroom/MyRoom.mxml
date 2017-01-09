@@ -1,0 +1,214 @@
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" implements="utils.interfaces.ISceneContent" removedFromStage="group1_removedFromStageHandler(event)"
+		 xmlns:s="library://ns.adobe.com/flex/spark" width="100%" height="100%" initialize="onInit(event)"
+		 xmlns:mx="library://ns.adobe.com/flex/mx" xmlns:iconswf="application.components.iconswf.*" xmlns:catalog="application.gamecontainer.scene.catalog.*" xmlns:iteminfo="application.gamecontainer.scene.catalog.iteminfo.*" xmlns:bar="application.gamecontainer.scene.catalog.bar.*" xmlns:body="application.gamecontainer.scene.bag.body.*" xmlns:button="application.components.button.*" xmlns:myroom="application.gamecontainer.scene.myroom.*">
+	<fx:Script>
+		<![CDATA[
+			import application.GameApplication;
+			import application.GameMode;
+			import application.components.popup.friendbonus.PopUpFriendBonus;
+			import application.components.popup.saleall.PopUpSaleAll;
+			import application.gamecontainer.scene.bag.PresentsContent;
+			import application.gamecontainer.scene.catalog.bar.tab.CatalogTab;
+			import application.gamecontainer.scene.catalog.bar.tab.CatalogTabEvent;
+			import application.gamecontainer.scene.myroom.enemiesinfo.EnemiesContent;
+			import application.gamecontainer.scene.myroom.friendsinfo.FriendsContent;
+			import application.gamecontainer.scene.myroom.messages.MessagesContent;
+			import application.gamecontainer.scene.myroom.myinfo.MyUserInfo;
+			import application.gamecontainer.scene.myroom.quests.QuestsContent;
+			
+			import mx.binding.utils.BindingUtils;
+			import mx.binding.utils.ChangeWatcher;
+			import mx.events.FlexEvent;
+			
+			import utils.interfaces.ISceneContent;
+			import utils.shop.CategoryType;
+			
+			private var _selectedCategory:int;
+			private var _curentCategoryContent:int;
+			
+			private var _sid:int = -1;
+			private var cooldownTime:int;
+			private var questCoolDownWatcher:ChangeWatcher;
+			
+			public function set selectedCategory(value:int):void{
+				_selectedCategory = value;
+				updateSelectedCategory();
+			}
+			
+			private function updateSelectedCategory():void{
+				if(myroombar.hash[_selectedCategory] is CatalogTab){
+					(myroombar.hash[_selectedCategory] as CatalogTab).selected = true;					
+				}
+			}
+			
+			protected function onInit(event:FlexEvent):void
+			{
+				myroombar.showGroups();
+				myroombar.addEventListener(CatalogTabEvent.SELECTED, onSelectCategory);
+				myroombar.addEventListener(CatalogTabEvent.UNSELECTED, onUnSelectCategory);
+				updateSelectedCategory();
+				updateContentByCategory(CategoryType.PERS);
+				
+				if(questCoolDownWatcher){
+					questCoolDownWatcher.unwatch();
+				}
+				
+				questCoolDownWatcher = BindingUtils.bindSetter(onChangeQuestCoolDownTime, GameApplication.app.models.questsModel, "cooldownTime", false, true);
+			}
+			
+			private function onChangeQuestCoolDownTime(value:int):void{
+				if(_sid != -1){
+					clearInterval(_sid);
+					_sid = -1;
+				}
+				
+				cooldownTime = GameApplication.app.models.questsModel.cooldownTime;
+				if(cooldownTime > 0){
+					_sid = setInterval(updateCoolDownTime, 1000);
+				}
+			}
+			
+			private function updateCoolDownTime():void{
+				cooldownTime--;
+				if(cooldownTime <= 0){
+					if(_sid != -1){
+						clearInterval(_sid);
+						_sid = -1;
+					}
+					
+					GameApplication.app.models.questsModel.cooldownTime = 0;
+				}else{
+					updateCoolDownText();
+				}
+			}
+			
+			private function updateCoolDownText():void{
+				var hours:int =  Math.floor(cooldownTime / (60 * 60));
+				var minuts:int = Math.floor((cooldownTime - hours * 60 * 60) / 60);
+				var seconds:int = cooldownTime - hours * 60 * 60 - minuts * 60;
+				
+				var hstr:String = String(hours);
+				if (hours < 10) hstr = "0" + hstr;
+				
+				var mstr:String = String(minuts);
+				if (minuts < 10) mstr = "0" + mstr;
+				
+				var sstr:String = String(seconds);
+				if (seconds < 10) sstr = "0" + sstr;
+				
+				var cdText:String = "До следующего задания: ";				
+				if (hours > 0){
+					cdText += hstr + " : ";
+				}else{
+					cdText += "00" + " : ";
+				}
+				if (minuts > 0){
+					cdText += mstr + " : ";
+				}else{
+					cdText += "00" + " : ";
+				}
+				if (seconds > 0){
+					cdText += sstr;
+				}else{
+					cdText += "00";
+				}
+				
+				questCooldownTime.text = cdText;
+			}
+			
+			private function onUnSelectCategory(e:CatalogTabEvent):void{
+				contentGr.removeAllElements()
+			}
+			
+			private function onSelectCategory(e:CatalogTabEvent):void{
+				updateContentByCategory(e.tab.category.id);				
+			}
+			
+			private function updateContentByCategory(category:int):void{
+				if(category != _curentCategoryContent){
+					_curentCategoryContent = category;
+					saleAllGr.visible = saleAllGr.includeInLayout = false;
+					if(category == CategoryType.PRESENTS){
+						saleAllGr.visible = saleAllGr.includeInLayout = true;
+						contentGr.addElement(new PresentsContent());
+					}else if(category == CategoryType.PERS){
+						contentGr.addElement(new MyUserInfo());
+					}else if(category == CategoryType.QUESTS){
+						contentGr.addElement(new QuestsContent());
+					}else if(category == CategoryType.FRIENDS){
+						contentGr.addElement(new FriendsContent());					
+					}else if(category == CategoryType.ENEMIES){
+						contentGr.addElement(new EnemiesContent());				
+					}else if(category == CategoryType.MESSAGES){
+						contentGr.addElement(new MessagesContent());			
+					}
+				}
+			}
+			
+			protected function onBack(event:MouseEvent):void{
+				GameApplication.app.navigator.goHome();
+			}
+			
+			public function onHide():void{
+			}
+
+			protected function gamebutton2_clickHandler(event:MouseEvent):void
+			{
+				GameApplication.app.userinfomanager.showOnlineTimeMoneyInfo();
+			}
+
+
+			protected function gamebutton3_clickHandler(event:MouseEvent):void
+			{
+				GameApplication.app.popuper.show(new PopUpFriendBonus());
+			}
+
+
+			protected function group1_removedFromStageHandler(event:Event):void
+			{
+				if(_sid != -1){
+					clearInterval(_sid);
+					_sid = -1;
+				}
+				
+				if(questCoolDownWatcher){
+					questCoolDownWatcher.unwatch();
+				}
+				
+				GameApplication.app.models.questsModel.cooldownTime = 0;
+			}
+			
+			protected function buyall_clickHandler(event:MouseEvent):void
+			{
+				GameApplication.app.popuper.show(new PopUpSaleAll());
+			}
+		]]>
+	</fx:Script>
+	
+	
+	<s:Rect width="100%" height="100%">
+		<s:fill>
+			<s:SolidColor color="0x0" alpha=".8"/>
+		</s:fill>
+		<s:stroke>
+			<s:SolidColorStroke color="0xB7B7B7" weight="2"/>
+		</s:stroke>
+	</s:Rect>
+	<s:Label width="100%" top="8" textAlign="center" text="Личный кабинет" fontSize="30" color="0xFFFFFF" fontWeight="bold" fontStyle="italic"/>
+	
+	<s:VGroup width="100%" height="100%" paddingLeft="10" paddingRight="10" paddingTop="40" paddingBottom="10" horizontalAlign="center">
+		<myroom:MyRoomBar id="myroombar" height="25" gap="0" width="540"/>
+		<s:Group id="contentGr" width="540" height="100%"/>
+		<s:HGroup width="100%" verticalAlign="middle">
+			<button:GameButton label="зарплата" click="gamebutton2_clickHandler(event)"/>
+			<!--<button:GameButton id="friendBonusBtn" label="мои бонусы" click="gamebutton3_clickHandler(event)" visible="{GameApplication.app.config.mode == GameMode.SITE}" includeInLayout="{GameApplication.app.config.mode == GameMode.SITE}"/>-->
+			<s:Group id="saleAllGr">
+				<button:GameButton id="saleAll" label="продать все" click="buyall_clickHandler(event)" visible="{GameApplication.app.models.userPresents.collection.length > 0}"/>				
+			</s:Group>
+			<mx:Spacer width="100%"/>
+			<s:Label id="questCooldownTime" color="0xffffff" fontSize="12" fontWeight="bold" visible="{GameApplication.app.models.questsModel.cooldownTime > 0}" includeInLayout="{GameApplication.app.models.questsModel.cooldownTime > 0}"/>
+			<mx:Spacer width="100%"/>
+			<button:GameButton id="back" label="выйти" click="onBack(event)"/>
+		</s:HGroup>
+	</s:VGroup>
+</s:Group>

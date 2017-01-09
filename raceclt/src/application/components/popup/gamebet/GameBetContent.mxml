@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark" initialize="onInit(event)"
+		 xmlns:mx="library://ns.adobe.com/flex/mx" width="500" height="300" top="30" xmlns:button="application.components.button.*" xmlns:iconswf="application.components.iconswf.*">
+	<s:layout>
+		<s:BasicLayout/>
+	</s:layout>
+	<fx:Script>
+		<![CDATA[
+			import application.GameApplication;
+			import application.components.popup.help.bet.PopUpHelpBet;
+			import application.gamecontainer.scene.betpage.betgameitem.BetGameItem;
+			
+			import flashx.textLayout.formats.TextAlign;
+			
+			import mx.events.FlexEvent;
+			
+			import utils.game.betroominfo.GameBetRoomInfo;
+			
+			private var _sid:int = -1;
+			
+			protected function onInit(event:FlexEvent):void{
+				_sid = setInterval(updateBetGames, 5000);
+				updateBetGames();
+				
+				addWarning();
+			}
+			
+			private function addWarning():void{
+				var spacer:Spacer;
+				
+				spacer = new Spacer();
+				spacer.percentHeight = 100;
+				games.addElement(spacer);
+				
+				var l:Label = new Label();
+				l.setStyle("color", 0xcccccc);
+				l.text = "Нет доступных предложений. Дождитесь нового предложения или создайте свою игру...";
+				l.setStyle("textAlign", TextAlign.CENTER);
+				l.width = 300;
+				games.addElement(l);
+				
+				spacer = new Spacer();
+				spacer.percentHeight = 100;
+				games.addElement(spacer);
+			}
+			
+			public function updateBetGames():void{
+				GameApplication.app.gamemanager.getBetGamesInfo(onGetRooms);
+			} 
+			
+			private function onGetRooms(rooms:Array):void{ 
+				games.removeAllElements();				
+				var addrooms:Boolean = false;
+				for(var i:uint; i < rooms.length; i++){
+					if((rooms[i] as GameBetRoomInfo).time > 3){
+						var item:BetGameItem = new BetGameItem();
+						item.roomInfo = rooms[i];
+						games.addElement(item);
+						addrooms = true;
+					}
+				}
+				
+				if (!addrooms){
+					addWarning();
+				}
+			}
+			
+			public function onHide():void{
+				if (_sid != -1){
+					clearInterval(_sid);
+					_sid = -1;
+				}
+				games.removeAllElements();
+			}
+			
+			protected function onCreate(event:MouseEvent):void{
+				var password:String = "";
+				if(passwd.text.length > 0){
+					password = passwd.text;
+				}
+				if(int(bet.text) > 9){
+					GameApplication.app.gamemanager.createBetGame(int(bet.text), password);
+				}else{
+					GameApplication.app.popuper.showInfoPopUp("Введите корректную сумму ставки. Минимальная ставка - 10");
+				}
+			}
+			
+			protected function showHelp(event:MouseEvent):void{
+				GameApplication.app.popuper.show(new PopUpHelpBet());
+			}
+
+
+			protected function passwd_focusInHandler(event:FocusEvent):void
+			{
+				passwdText.visible = false;
+			}
+
+
+			protected function passwd_focusOutHandler(event:FocusEvent):void
+			{
+				if(passwd.text.length == 0)
+					passwdText.visible = true;
+			}
+
+		]]>
+	</fx:Script>
+	<fx:Declarations>
+		<!-- Разместить невизуальные элементы (например, службы или объекты значений) -->
+	</fx:Declarations>
+	
+	<s:Rect width="100%" height="100%">
+		<s:fill>
+			<s:SolidColor color="0xff0000" alpha="0"/>
+		</s:fill>
+	</s:Rect>
+	
+	<s:VGroup width="100%" height="100%">
+		<s:HGroup verticalAlign="middle" width="100%" horizontalAlign="center" click="showHelp(event)" buttonMode="true">
+			<s:Label height="13" textDecoration="underline" fontSize="12" color="0xFFFFCC" text="правила"/>		
+		</s:HGroup>
+		<s:Scroller width="100%" height="100%">
+			<s:VGroup id="games" width="100%" height="100%" horizontalAlign="center"/>
+		</s:Scroller>
+		<mx:Spacer height="10"/>
+		<s:HGroup verticalAlign="middle" width="100%">
+			<s:HGroup verticalAlign="middle" width="100%">
+				<s:Label text="ставка:" color="0xffffff" paddingTop="4" fontSize="14" fontWeight="normal"/>
+				<s:TextInput id="bet" text="100" maxChars="25" width="60" color="0xffffff" contentBackgroundColor="0x666666" focusAlpha="0" focusEnabled="false" borderColor="0x333333"/>
+				<iconswf:IconMXML iconClass="{IconMoney}"/>
+			</s:HGroup>
+			<mx:Spacer width="10"/>
+			<s:HGroup verticalAlign="middle" width="100%">
+				<s:Label text="пароль:" color="0xffffff" paddingTop="4" fontSize="14" fontWeight="normal"/>
+				<s:Group>
+					<s:TextInput id="passwd" maxChars="25" width="80" color="0xffffff" contentBackgroundColor="0x666666" focusAlpha="0" focusEnabled="false" borderColor="0x333333" focusIn="passwd_focusInHandler(event)" focusOut="passwd_focusOutHandler(event)"/>
+					<s:Label id="passwdText" text="без пароля" left="5" top="2" color="0xffffff" paddingTop="4" fontSize="12" fontWeight="normal" mouseChildren="false" mouseEnabled="false"/>
+				</s:Group>
+			</s:HGroup>
+			<mx:Spacer width="10"/>
+			<button:GameButton id="createbtn" label="создать игру" click="onCreate(event)"/>
+			<mx:Spacer width="100%"/>
+		</s:HGroup>
+	</s:VGroup>
+</s:Group>

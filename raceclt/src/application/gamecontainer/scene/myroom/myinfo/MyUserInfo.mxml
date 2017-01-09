@@ -1,0 +1,176 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark" initialize="group1_initializeHandler(event)"
+		 xmlns:mx="library://ns.adobe.com/flex/mx" top="5" width="100%" height="100%" xmlns:experience="application.gamecontainer.persinfobar.experience.*" xmlns:energy="application.gamecontainer.persinfobar.energy.*" xmlns:button="application.components.button.*" xmlns:popular="application.gamecontainer.persinfobar.popular.*" xmlns:iconswf="application.components.iconswf.*" xmlns:quests="application.gamecontainer.persinfobar.quests.*" xmlns:money="application.gamecontainer.persinfobar.money.*">
+	
+	<fx:Script>
+		<![CDATA[
+			import application.GameApplication;
+			import application.gamecontainer.scene.clans.ClanRoom;
+			
+			import mx.events.FlexEvent;
+			
+			import utils.managers.gameparams.GameParamsManager;
+			import utils.models.quests.Quest;
+			import utils.models.quests.QuestStatus;
+			import utils.shop.CategoryType;
+			import utils.user.Accessorytype;
+			import utils.user.ClanUserRole;
+			import utils.user.ColorType;
+			import utils.user.Sex;
+			import utils.user.User;
+			import utils.user.VipType;
+			[Bindable]
+			private var _user:User;
+			
+			[Bindable]
+			public var leftColumnWidth:Number = 110;
+			
+			
+			public function set user(u:User):void{
+				_user = u;
+				if (_user.sex == Sex.MALE){
+					sex.text = "мужской";
+				}else{
+					sex.text = "женский";
+				}
+				if(_user.claninfo.clanid > 0 && _user.claninfo.clanrole != ClanUserRole.INVITED){
+					clan.text = _user.claninfo.clantitle;
+				}
+				
+				var ebonus:int = 0;
+				if(u.vip == VipType.VIP_BRONZE){
+					ebonus += 2;
+				}else if(u.vip == VipType.VIP_SILVER){
+					ebonus += 3;
+				}else if(u.vip == VipType.VIP_GOLD){
+					ebonus += 4;
+				}
+				
+				var cebonus:int = 0;
+				if(u.vip == VipType.VIP_BRONZE){
+					cebonus += 0;
+				}else if(u.vip == VipType.VIP_SILVER){
+					cebonus += 1;
+				}else if(u.vip == VipType.VIP_GOLD){
+					cebonus += 1;
+				}
+				
+				var minute:int = 60;
+				var hour:int = 60 * 60;
+				var day:int = 60 * 60 * 24;
+				
+				var days:int;
+				var hours:int;
+				var minuts:int;
+				
+				if(u.vipTime > 0 && u.vip != VipType.NONE){
+					days = Math.floor(u.vipTime / day);
+					hours = Math.floor((u.vipTime - days * day) / hour);
+					minuts = Math.floor((u.vipTime - days * day - hours * hour) / minute);
+					viptime.text = "";
+					if(days > 0) viptime.text += days + "д ";
+					if(hours > 0) viptime.text += hours + "ч ";
+					if(minuts > 0) viptime.text += minuts + "м";
+					
+					if(days == 0 && hours == 0 && minuts == 0){
+						viptime.text += "1 м";
+					}
+				}
+				
+				if(u.vip == VipType.VIP_BRONZE){
+					vip.text = "бронзовый";
+				}else if(u.vip == VipType.VIP_SILVER){
+					vip.text = "серебряный";
+				}else if(u.vip == VipType.VIP_GOLD){
+					vip.text = "золотой";
+				}else{
+					vip.text = "нет";
+				}
+				
+//				var countQuestsComleted:int;
+//				var countQuestsAll:int;
+//				var q:Quest;
+//				for(var i:int = 0; i < GameApplication.app.models.questsModel.quests.length; i++){
+//					q = GameApplication.app.models.questsModel.quests.getItemAt(i) as Quest;
+//					if(q && q.status == QuestStatus.COMLETED){
+//						countQuestsComleted++;
+//					}
+//					countQuestsAll++;
+//				}
+//			
+//				questsIndicator.value = countQuestsComleted;
+//				questsIndicator.maxValue = countQuestsAll;
+			}
+
+			protected function group1_initializeHandler(event:FlexEvent):void
+			{
+				GameApplication.app.userinfomanager.showUserInfo(GameApplication.app.userinfomanager.myuser, onGetUserInfo);
+			}
+			
+			private function onGetUserInfo(u:User):void{
+				user = u;				
+			}
+		]]>
+	</fx:Script>
+	<s:HGroup width="100%" height="100%" gap="0">
+		<s:VGroup width="100%" height="100%">
+			<s:HGroup verticalAlign="middle">
+				<s:Label text="Имя:" width="{leftColumnWidth}" color="0xffffff" fontSize="13" fontWeight="normal"/>
+				<s:Label id="nick" text="{_user.title}" maxWidth="120" maxDisplayedLines="1" color="0xffffff" fontSize="13" fontWeight="normal"/>
+				<s:Label id="userid" text="({_user.id})" color="0xcccccc" fontSize="10" fontWeight="normal"/>
+			</s:HGroup>
+			<s:HGroup verticalAlign="middle">
+				<s:Label text="Уровень:" width="{leftColumnWidth}" color="0xffffff" fontSize="13" fontWeight="normal"/>
+				<s:Label id="level" text="[{_user.level}]" color="0x00FFFF" fontSize="13" fontWeight="normal"/>			
+			</s:HGroup>
+			<s:HGroup verticalAlign="middle">
+				<s:Label text="Клуб: " width="{leftColumnWidth}" color="0xffffff" fontSize="13" fontWeight="normal"/>
+				<s:Label id="clan" text="не состоит в клубе" maxWidth="140" color="0xFF9933" fontSize="13" fontWeight="normal" maxDisplayedLines="1"/>			
+			</s:HGroup>
+			<s:HGroup verticalAlign="middle">
+				<s:Label text="Пол:" width="{leftColumnWidth}" color="0xffffff" fontSize="13" fontWeight="normal"/>
+				<s:Label id="sex" color="0xffffff" fontSize="13" fontWeight="normal"/>			
+			</s:HGroup>
+			<!--<s:HGroup verticalAlign="middle">
+				<s:Label text="Задания:" width="{leftColumnWidth}" color="0xffffff" fontSize="13" fontWeight="normal"/>
+				<quests:QuestsIndicator id="questsIndicator" width="140"/>			
+			</s:HGroup>-->
+			<s:HGroup verticalAlign="middle">
+				<s:Label text="Опыт:" width="{leftColumnWidth}" color="0xffffff" fontSize="13" fontWeight="normal"/>
+				<experience:ExperienceIndicator experience="{_user.experience}" maxexperience="{_user.maxExperience}" width="140"/>			
+			</s:HGroup>
+			<s:HGroup verticalAlign="middle">
+				<s:Label text="Популярность:" width="{leftColumnWidth}" color="0xffffff" fontSize="13" fontWeight="normal"/>
+				<popular:PopularIndicator popular="{_user.popular}" width="140"/>			
+			</s:HGroup>
+			<s:HGroup verticalAlign="middle">
+				<s:Label text="Опыт за час: " width="{leftColumnWidth}" color="0xffffff" fontSize="13" fontWeight="normal"/>
+				<s:Label id="exphour" text="+ {_user.exphour}" color="0xFF9933" fontSize="13" fontWeight="normal"/>			
+			</s:HGroup>
+			<s:HGroup verticalAlign="middle">
+				<s:Label text="Опыт за день: " width="{leftColumnWidth}" color="0xffffff" fontSize="13" fontWeight="normal"/>
+				<s:Label id="expday" text="+ {_user.expday}" color="0xFF9933" fontSize="13" fontWeight="normal"/>			
+			</s:HGroup>
+			<s:HGroup verticalAlign="middle">
+				<s:Label text="Vip-аккаунт: " width="{leftColumnWidth}" color="0xffffff" fontSize="13" fontWeight="normal"/>
+				<s:Label id="vip" text="нет" color="0xffffff" fontSize="13" fontWeight="normal"/>
+			</s:HGroup>
+			<s:HGroup verticalAlign="middle">
+				<s:Label text="До окончания vip:" width="{leftColumnWidth}" color="0xffffff" fontSize="13" fontWeight="normal"/>
+				<s:Label id="viptime" text="-" color="0xffffff" fontSize="13" fontWeight="normal"/>
+			</s:HGroup>
+			<mx:Spacer height="5"/>
+		</s:VGroup>
+		<s:VGroup>
+			<s:HGroup verticalAlign="middle">
+				<s:Label text="Серебро: " width="{leftColumnWidth}" paddingTop="5" color="0xffffff" fontSize="13" fontWeight="normal"/>
+				<money:Money money="{GameApplication.app.userinfomanager.myuser.money}"/>
+			</s:HGroup>
+			<s:HGroup verticalAlign="middle">
+				<s:Label text="Золото: " width="{leftColumnWidth}" paddingTop="5" color="0xffffff" fontSize="13" fontWeight="normal"/>
+				<money:MoneyReal moneyReal="{GameApplication.app.userinfomanager.myuser.moneyReal}"/>
+			</s:HGroup>
+		</s:VGroup>
+	</s:HGroup>	
+</s:Group>

@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark" initialize="group1_initializeHandler(event)"
+		 xmlns:mx="library://ns.adobe.com/flex/mx" width="100%" height="100%">
+	<fx:Script>
+		<![CDATA[
+			import application.GameApplication;
+			
+			import mx.events.FlexEvent;
+
+			protected function group1_initializeHandler(event:FlexEvent):void
+			{
+				presentCB.selected = GameApplication.app.models.settings.presentMessagesVisible;
+				systemCB.selected = GameApplication.app.models.settings.systemMessagesVisible;
+				banCB.selected = GameApplication.app.models.settings.banMessagesVisible;
+				privateCB.selected = GameApplication.app.models.settings.privateMessagesVisible;
+				exitRaceCB.selected = GameApplication.app.models.settings.exitFromGameWarning;
+//				userTitlesVisibleCB.selected = GameApplication.app.models.settings.userTitlesInGameVisible;
+//				soundsOnCB.selected = GameApplication.app.models.settings.soundsOn;
+//				musicOnCB.selected = GameApplication.app.models.settings.musicOn;
+//				musicSlider.value = GameApplication.app.models.settings.musicVolume;
+				
+				if(GameApplication.app.models.settings.stageQuality == StageQuality.LOW){
+					low.selected = true;
+				}else if(GameApplication.app.models.settings.stageQuality == StageQuality.MEDIUM){
+					medium.selected = true;
+				}else{
+					high.selected = true;
+				}
+				decorationCB.selected = !GameApplication.app.models.settings.showDecoration;
+			}
+
+			protected function presentCB_clickHandler(event:MouseEvent):void
+			{
+				GameApplication.app.models.settings.presentMessagesVisible = presentCB.selected;
+				GameApplication.app.so.data["presentMessagesVisible"] = presentCB.selected;
+				GameApplication.app.so.flush();
+			}
+
+			protected function systemCB_clickHandler(event:MouseEvent):void
+			{
+				GameApplication.app.models.settings.systemMessagesVisible = systemCB.selected;
+				GameApplication.app.so.data["systemMessagesVisible"] = systemCB.selected;
+				GameApplication.app.so.flush();
+			}
+
+			protected function banCB_clickHandler(event:MouseEvent):void
+			{
+				GameApplication.app.models.settings.banMessagesVisible = banCB.selected;
+				GameApplication.app.so.data["banMessagesVisible"] = banCB.selected;
+				GameApplication.app.so.flush();
+			}
+
+			protected function privateCB_clickHandler(event:MouseEvent):void
+			{
+				GameApplication.app.models.settings.privateMessagesVisible = privateCB.selected;
+				GameApplication.app.so.data["privateMessagesVisible"] = privateCB.selected;
+				GameApplication.app.so.flush();
+			}
+
+			protected function userTitlesVisibleCB_clickHandler(event:MouseEvent):void
+			{
+//				GameApplication.app.models.settings.userTitlesInGameVisible = userTitlesVisibleCB.selected;
+//				GameApplication.app.so.data["userTitlesInGameVisible"] = userTitlesVisibleCB.selected;
+//				GameApplication.app.so.flush();
+			}
+
+			protected function quality_changeHandler(event:Event):void
+			{
+				var quality:String = StageQuality.HIGH;
+				if(low.selected){
+					quality = StageQuality.LOW;
+				}else if(medium.selected){
+					quality = StageQuality.MEDIUM;
+				}else{
+					quality = StageQuality.HIGH;
+				}
+				GameApplication.app.stage.quality = quality;
+				GameApplication.app.models.settings.stageQuality = quality;
+				GameApplication.app.so.data["stageQuality"] = quality;
+				GameApplication.app.so.flush();
+			}
+
+			protected function soundsOnCB_clickHandler(event:MouseEvent):void
+			{
+//				GameApplication.app.models.settings.soundsOn = soundsOnCB.selected;
+//				GameApplication.app.so.data["soundsOn"] = soundsOnCB.selected;
+//				GameApplication.app.so.flush();
+			}
+
+			protected function musicOnCB_clickHandler(event:MouseEvent):void
+			{
+//				GameApplication.app.models.settings.musicOn = musicOnCB.selected;
+//				GameApplication.app.so.data["musicOn"] = musicOnCB.selected;
+//				GameApplication.app.so.flush();
+			}
+
+
+			protected function musicSlider_changeHandler(event:Event):void
+			{
+//				GameApplication.app.models.settings.musicVolume = musicSlider.value;
+//				GameApplication.app.so.data["musicVolume"] = musicSlider.value;
+//				GameApplication.app.so.flush();
+			}
+
+
+			protected function exitRaceCB_clickHandler(event:MouseEvent):void
+			{
+				GameApplication.app.models.settings.exitFromGameWarning = exitRaceCB.selected;
+				GameApplication.app.so.data["exitFromGameWarning"] = exitRaceCB.selected;
+				GameApplication.app.so.flush();
+			}
+
+
+			protected function decorationCB_clickHandler(event:MouseEvent):void
+			{
+				GameApplication.app.models.settings.showDecoration = !decorationCB.selected;
+				GameApplication.app.so.data["showDecoration"] = !decorationCB.selected;
+				GameApplication.app.so.flush();
+			}
+
+		]]>
+	</fx:Script>
+	<s:VGroup width="100%" height="100%">
+		<s:CheckBox id="presentCB" selected="true" label="отображать сообщения о подарках" fontSize="12" color="0xffffff" click="presentCB_clickHandler(event)"/>
+		<s:CheckBox id="systemCB" selected="false" label="отображать системные сообщения" fontSize="12" color="0xffffff" click="systemCB_clickHandler(event)"/>
+		<s:CheckBox id="banCB" selected="false" label="отображать сообщения о банах" fontSize="12" color="0xffffff" click="banCB_clickHandler(event)"/>
+		<s:CheckBox id="privateCB" selected="true" label="отображать приватные сообщения" fontSize="12" color="0xffffff" click="privateCB_clickHandler(event)"/>
+		<s:CheckBox id="exitRaceCB" selected="true" label="отображать предупреждения при выходе из заезда" fontSize="12" color="0xffffff" click="exitRaceCB_clickHandler(event)"/>
+		<!--<s:CheckBox id="userTitlesVisibleCB" selected="true" label="отображать имена пользователей в забеге" fontSize="12" color="0xffffff" click="userTitlesVisibleCB_clickHandler(event)"/>-->
+		<mx:Spacer height="30"/>
+		<s:VGroup width="100%">
+			<s:Label text="Качество изображения (рекомендуем уменьшить если вас не устраивает скорость работы игры):" color="0xffffff" width="100%"/>
+			<s:HGroup verticalAlign="middle">
+				<s:RadioButton id="low" label="низкое" groupName="sq" color="0xffffff" click="quality_changeHandler(event)"/>
+				<mx:Spacer width="10"/>
+				<s:RadioButton id="medium" label="среднее" groupName="sq" color="0xffffff" click="quality_changeHandler(event)"/>
+				<mx:Spacer width="10"/>
+				<s:RadioButton id="high" label="высокое" groupName="sq" color="0xffffff" click="quality_changeHandler(event)"/>
+			</s:HGroup>
+		</s:VGroup>
+		<s:CheckBox id="decorationCB" selected="false" label="не отображать декорации в заездах" fontSize="12" color="0xffffff" click="decorationCB_clickHandler(event)"/>
+		<mx:Spacer height="10"/>
+		<!--<s:CheckBox id="soundsOnCB" selected="true" label="включить звуки" fontSize="12" color="0xffffff" click="soundsOnCB_clickHandler(event)"/>
+		<s:CheckBox id="musicOnCB" selected="true" label="включить музыку. Громкость: " fontSize="12" color="0xffffff" click="musicOnCB_clickHandler(event)"/>
+		<s:HGroup verticalAlign="middle">
+			<s:Label text="Громкость:" color="0xffffff" width="100%"/>
+			<s:HSlider id="musicSlider" value="50" minimum="0" maximum="100" width="100" change="musicSlider_changeHandler(event)"/>
+		</s:HGroup>-->
+	</s:VGroup>
+</s:Group>

@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark" initialize="group1_initializeHandler(event)" removedFromStage="group1_removedFromStageHandler(event)"
+		 xmlns:mx="library://ns.adobe.com/flex/mx" top="5" width="100%" height="100%" xmlns:button="application.components.button.*" xmlns:money="application.gamecontainer.persinfobar.money.*" xmlns:preloader="application.components.preloader.*">
+	
+	<fx:Script>
+		<![CDATA[
+			import application.GameApplication;
+			
+			import mx.binding.utils.BindingUtils;
+			import mx.binding.utils.ChangeWatcher;
+			import mx.collections.ArrayCollection;
+			import mx.events.CollectionEvent;
+			import mx.events.CollectionEventKind;
+			import mx.events.FlexEvent;
+			
+			import utils.user.User;
+
+			protected function bodyList_renderHandler(event:Event):void
+			{
+				if(bodyList.scroller.verticalScrollBar.value == bodyList.scroller.verticalScrollBar.maximum && bodyList.scroller.verticalScrollBar.value > 0){
+					checkAndGet();
+				}
+			}
+			
+			private function checkAndGet():void{
+				if(!GameApplication.app.models.gettingMessages && !GameApplication.app.models.endMessages){ 
+					GameApplication.app.models.gettingMessages = true;
+					GameApplication.app.userinfomanager.getMessages();
+				}
+			}
+			
+			protected function group1_initializeHandler(event:FlexEvent):void
+			{
+				GameApplication.app.models.mailMessages = new ArrayCollection();;
+				GameApplication.app.models.mailMessages.addEventListener(CollectionEvent.COLLECTION_CHANGE, onChangeCollection, false, 0, true);
+				GameApplication.app.models.gettingMessages = false;
+				GameApplication.app.models.endMessages = false;
+				
+				checkAndGet();
+			}
+			
+			private function onChangeCollection(e:*):void{
+				if(GameApplication.app.models.mailMessages.length > 0){
+					preloader.visible = preloader.includeInLayout = false;
+					nofriends.visible = nofriends.includeInLayout = false;
+					bodyList.visible = bodyList.includeInLayout = true;
+				}else{
+					preloader.visible = preloader.includeInLayout = false;
+					nofriends.visible = nofriends.includeInLayout = true;
+					bodyList.visible = bodyList.includeInLayout = false;
+				}
+			}
+
+			protected function group1_removedFromStageHandler(event:Event):void
+			{
+				GameApplication.app.models.mailMessages.removeEventListener(CollectionEvent.COLLECTION_CHANGE, onChangeCollection);
+			}
+		]]>
+	</fx:Script>
+	
+	<s:VGroup width="100%" height="100%">
+		<preloader:PreLoaderCircle id="preloader" text="Загрузка сообщений..."/>
+		<s:List id="bodyList" height="100%" width="100%" visible="false" includeInLayout="false"
+				contentBackgroundAlpha="0" borderVisible="false" render="bodyList_renderHandler(event)"
+				dataProvider="{GameApplication.app.models.mailMessages}"
+				itemRenderer="application.gamecontainer.scene.myroom.messages.MailMessageItemRenderer">
+			<s:layout>
+				<s:VerticalLayout gap="10"/>
+			</s:layout>
+		</s:List>
+		<s:HGroup id="nofriends" width="100%" height="100%" horizontalAlign="center" verticalAlign="middle" includeInLayout="false" visible="false">
+			<s:Label fontSize="12" width="100%" textAlign="center" color="0xcccccc" text="У вас нет ни одного сообщения..."/>
+		</s:HGroup>
+	</s:VGroup>
+</s:Group>

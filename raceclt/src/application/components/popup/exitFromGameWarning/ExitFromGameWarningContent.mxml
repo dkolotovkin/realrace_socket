@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark"
+		 xmlns:mx="library://ns.adobe.com/flex/mx" top="35" width="100%" height="100%" xmlns:button="application.components.button.*" xmlns:money="application.gamecontainer.persinfobar.money.*">
+	<fx:Script>
+		<![CDATA[
+			import application.GameApplication;
+			
+			public var closeFunction:Function;
+			
+			protected function gamebutton1_clickHandler(event:MouseEvent):void
+			{
+				GameApplication.app.gameContainer.chat.exitFromGame();
+				closeFunction && closeFunction();
+			}
+
+
+			protected function gamebutton2_clickHandler(event:MouseEvent):void
+			{
+				closeFunction && closeFunction();
+			}
+		]]>
+	</fx:Script>
+	<s:VGroup width="100%" height="100%">
+		<s:Label text="Внимание! Не доехав до финиша, вы потеряете 2 опыта при выходе. Вы действительно хотите выйти из заезда?" width="300" color="0xFF9933" fontSize="14" fontWeight="normal"/>
+		<s:HGroup width="100%" gap="10" verticalAlign="middle" horizontalAlign="center">
+			<button:GameButton label="выйти" click="gamebutton1_clickHandler(event)"/>
+			<button:GameButton label="отмена" click="gamebutton2_clickHandler(event)"/>
+		</s:HGroup>
+	</s:VGroup>
+</s:Group>

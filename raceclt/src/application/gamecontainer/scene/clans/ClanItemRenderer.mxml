@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:ItemRenderer xmlns:fx="http://ns.adobe.com/mxml/2009" width="100%"
+				xmlns:s="library://ns.adobe.com/flex/spark" click="itemrenderer1_clickHandler(event)"
+				xmlns:mx="library://ns.adobe.com/flex/mx" rollOver="itemrenderer1_rollOverHandler(event)" rollOut="itemrenderer1_rollOutHandler(event)"
+				autoDrawBackground="false" xmlns:iconswf="application.components.iconswf.*" xmlns:money="application.gamecontainer.persinfobar.money.*">
+	<fx:Script>
+		<![CDATA[
+			import application.GameApplication;
+			
+			import mx.events.FlexEvent;
+			
+			import utils.models.ClanModel;
+
+			override public function set data(value:Object):void{
+				super.data = value;
+				
+				var clanInfo:ClanModel = value as ClanModel;
+				if(clanInfo){		
+					title.text = clanInfo.title;
+					ownertitle.text = clanInfo.ownertitle;
+					experience.text = clanInfo.experience.toString();
+					money.money = clanInfo.money;
+				}
+			}
+			
+			private function itemrenderer1_clickHandler(e:MouseEvent):void{
+				var clanInfo:ClanModel = data as ClanModel;
+				if(clanInfo){
+					GameApplication.app.navigator.goClanRoom(clanInfo.id);					
+				}
+			}
+
+			protected function itemrenderer1_rollOverHandler(event:MouseEvent):void
+			{
+				overGroup.visible = true;
+			}
+
+			protected function itemrenderer1_rollOutHandler(event:MouseEvent):void
+			{
+				overGroup.visible = false;
+			}
+		]]>
+	</fx:Script>
+	
+	<s:Rect id="overGroup" width="100%" height="100%" visible="false">
+		<s:fill>
+			<s:SolidColor color="0xffffff" alpha=".2"/>
+		</s:fill>
+	</s:Rect>
+	<s:HGroup verticalAlign="middle" width="100%" height="100%">
+		<mx:Spacer width="1"/>
+		<s:Label id="title" color="0xFF9933" fontSize="14" fontWeight="normal" width="150" maxDisplayedLines="1" toolTip="Название клуба"/>
+		<s:Label id="ownertitle" color="0xFFFFFF" fontSize="14" textAlign="center" fontWeight="normal" width="100%" maxDisplayedLines="1" toolTip="Владелец клуба"/>
+		<money:Money id="money" width="130" toolTip="Денежный фонд клуба"/>	
+		<s:HGroup verticalAlign="middle" width="140" toolTip="Опыт клуба">
+			<iconswf:IconMXML iconClass="{IconExperience}"/>
+			<s:Label id="experience" paddingTop="2" height="13" color="0xFFFFFF" fontSize="14" fontWeight="normal"/>
+		</s:HGroup>
+	</s:HGroup>	
+</s:ItemRenderer>

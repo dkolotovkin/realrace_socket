@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:SparkSkin xmlns:fx="http://ns.adobe.com/mxml/2009"  xmlns:s="library://ns.adobe.com/flex/spark" xmlns:mx="library://ns.adobe.com/flex/mx">
+	<s:states>
+		<s:State name="normal" />
+		<s:State name="disabled" /> 
+	</s:states>
+	
+	
+	<s:Rect width="100%" height="100%" radiusX="4" radiusY="4">
+		<s:fill>
+			<s:SolidColor color="0x999999" />
+		</s:fill>
+	</s:Rect>
+	
+	<s:Group id="m" width="100%" height="100%">
+		<s:Rect width="100%" height="100%" radiusX="4" radiusY="4" left="2" right="2" top="2" bottom="2">
+			<s:fill>
+				<s:SolidColor color="0x627363" />
+			</s:fill>
+		</s:Rect>		
+	</s:Group>
+	
+	<s:Group width="100%" height="100%">
+		<s:Rect width="100%" height="100%" radiusX="4" radiusY="4" left="2" right="2" top="2" bottom="2">
+			<s:fill>
+				<s:RadialGradient>
+					<s:entries>
+						<s:GradientEntry color="0x2C3630" ratio="0.0" alpha="1"/>					
+						<s:GradientEntry color="0x0E1114" ratio="1.0" alpha="1"/>
+					</s:entries>
+				</s:RadialGradient>
+			</s:fill>
+		</s:Rect>		
+	</s:Group>
+	
+	<s:BitmapImage source="{PopUpBgMc}" fillMode="repeat" width="100%" height="100%" left="0" right="0" top="0" bottom="0" mask="{m}"/>
+	
+	<s:Rect width="100%" height="100%" radiusX="4" radiusY="4" left="2" right="2" top="2" bottom="2">
+		<s:fill>
+			<s:RadialGradient>
+				<s:entries>
+					<s:GradientEntry color="0x000000" ratio="0.0" alpha="0.25"/>					
+					<s:GradientEntry color="0x000000" ratio="1.0" alpha="0.85"/>
+				</s:entries>
+			</s:RadialGradient>
+		</s:fill>
+	</s:Rect>
+	
+	<s:Group id="contentGroup" left="10" right="10" top="10" bottom="10" > 
+		<s:layout>
+			<s:BasicLayout />
+		</s:layout>
+	</s:Group>
+</s:SparkSkin>

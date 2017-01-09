@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:ItemRenderer xmlns:fx="http://ns.adobe.com/mxml/2009" initialize="itemrenderer1_initializeHandler(event)"
+				xmlns:s="library://ns.adobe.com/flex/spark" autoDrawBackground="false"
+				xmlns:mx="library://ns.adobe.com/flex/mx" width="100%">
+	<s:layout>
+		<s:BasicLayout/>
+	</s:layout>
+	<fx:Script>
+		<![CDATA[
+			import application.GameApplication;
+			
+			import mx.collections.ListCollectionView;
+			import mx.collections.Sort;
+			import mx.collections.SortField;
+			import mx.core.ScrollPolicy;
+			import mx.events.FlexEvent;
+			
+			import utils.models.quests.Quest;
+			import utils.models.quests.QuestGroup;
+			
+			private var group:QuestGroup;
+			
+			override public function set data(value:Object):void{
+				super.data = value;
+				group = value as QuestGroup;
+				if(group){
+					questGroupTitle.text = group.title;
+					
+					var collection:ListCollectionView = new ListCollectionView(GameApplication.app.models.questsModel.quests);
+					var ss:Sort = new Sort();
+					ss.fields = [new SortField("minLevel", false, false, true), new SortField("id", false, false, true)];
+					collection.sort = ss;
+					collection.filterFunction = filterByGroupId;
+					collection.refresh();
+					
+					bodyList.dataProvider = collection;
+				}
+			}
+			
+			private function filterByGroupId(quest:Quest):Boolean{
+				if(group && quest && quest.groupId == group.id){
+					return true;
+				}
+				return false;
+			}
+
+
+			protected function itemrenderer1_initializeHandler(event:FlexEvent):void
+			{
+				bodyList.scroller.setStyle("horizontalScrollPolicy", ScrollPolicy.OFF);
+			}
+
+
+			protected function questGroupTitle_clickHandler(event:MouseEvent):void
+			{
+				bodyList.visible = bodyList.includeInLayout = !bodyList.visible;
+			}
+		]]>
+	</fx:Script>
+	<s:VGroup width="100%">
+		<s:Label id="questGroupTitle" width="100%" color="0xFF9933" fontWeight="normal" fontSize="14" buttonMode="true" click="questGroupTitle_clickHandler(event)"/>
+		<s:List id="bodyList" width="100%"
+				contentBackgroundAlpha="0" borderVisible="false"
+				itemRenderer="application.gamecontainer.scene.myroom.quests.QuestRenderer">
+			<s:layout>
+				<s:VerticalLayout gap="5"/>
+			</s:layout>
+		</s:List>
+	</s:VGroup>
+</s:ItemRenderer>

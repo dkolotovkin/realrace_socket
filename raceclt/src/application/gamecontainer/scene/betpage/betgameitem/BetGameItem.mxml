@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" width="100%" implements="utils.managers.tooltip.IToolTiped"
+		  xmlns:s="library://ns.adobe.com/flex/spark" initialize="hgroup1_initializeHandler(event)"
+		  xmlns:mx="library://ns.adobe.com/flex/mx" xmlns:money="application.gamecontainer.persinfobar.money.*" xmlns:button="application.components.button.*" xmlns:iconswf="application.components.iconswf.*">
+	<s:states>
+		<s:State name="normal"/>
+		<s:State name="over"/>
+	</s:states>
+	
+	<fx:Script>
+		<![CDATA[
+			import application.GameApplication;
+			import application.components.popup.addtobetgame.PopUpAddToBetGame;
+			
+			import mx.events.FlexEvent;
+			
+			import utils.game.betroominfo.GameBetRoomInfo;
+			import utils.managers.tooltip.IToolTiped;
+			import utils.managers.tooltip.ToolTipType;
+			
+			[Bindable]
+			public var roomInfo:GameBetRoomInfo;
+
+
+			protected function onAdd(event:MouseEvent):void
+			{
+				if(roomInfo.passward){
+					GameApplication.app.popuper.show(new PopUpAddToBetGame(roomInfo.id));
+				}else{
+					GameApplication.app.gamemanager.addToBetGame(roomInfo.id, "");
+				}
+			}
+
+			protected function hgroup1_initializeHandler(event:FlexEvent):void
+			{
+				addEventListener(MouseEvent.ROLL_OVER, onRollOver, false, 0, true);
+				addEventListener(MouseEvent.ROLL_OUT, onRollOut, false, 0, true);
+			}
+			private function onRollOver(e:MouseEvent):void{
+				currentState = "over";
+			}
+			private function onRollOut(e:MouseEvent):void{
+				currentState = "normal";
+			}
+			
+			public function get toolTipDelay() : int {				
+				return 400;
+			}
+			
+			public function get toolTipDX() : int {
+				return 10;
+			}
+			
+			public function get toolTipDY() : int {
+				return 2;
+			}
+			
+			public function get toolTipType() : int {
+				return ToolTipType.BETGAME;
+			}
+
+		]]>
+	</fx:Script>
+	
+	<s:Rect width="100%" height="100%" includeIn="over">
+		<s:fill>
+			<s:SolidColor color="0xffffff" alpha=".2"/>
+		</s:fill>
+	</s:Rect>
+	
+	<s:HGroup width="100%" height="100%" verticalAlign="middle">
+		<mx:Spacer width="5"/>
+		<s:Label text="Игра на " color="0xFF9933" fontSize="14" fontWeight="normal"/>
+		<money:Money money="{roomInfo.bet}"/>
+		<mx:Spacer width="100%"/>
+		<s:Label text="начнется через: {roomInfo.time} сек" color="0xffffff" fontSize="14" />
+		<mx:Spacer width="100%"/>
+		<iconswf:IconMXML iconClass="{Locked}" includeInLayout="{roomInfo.passward}" visible="{roomInfo.passward}"/>
+		<button:GameButton id="createbtn" label="присоединиться" click="onAdd(event)" visible="{roomInfo.isseats}"/>
+		<mx:Spacer width="5"/>
+	</s:HGroup>
+</s:Group>

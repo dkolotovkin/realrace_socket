@@ -1,0 +1,167 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark" initialize="group1_initializeHandler(event)" removedFromStage="group1_removedFromStageHandler(event)"
+		 xmlns:mx="library://ns.adobe.com/flex/mx" width="100%" height="100%" xmlns:input="application.gamecontainer.chat.input.*" xmlns:iconswf="application.components.iconswf.*">
+	<s:layout>
+		<s:BasicLayout/>
+	</s:layout>
+	
+	<fx:Script>
+		<![CDATA[
+			import application.GameApplication;
+			
+			import flash.utils.clearInterval;
+			import flash.utils.setInterval;
+			
+			import mx.binding.utils.BindingUtils;
+			import mx.binding.utils.ChangeWatcher;
+			import mx.collections.ArrayCollection;
+			import mx.collections.ListCollectionView;
+			import mx.events.CollectionEvent;
+			import mx.events.CollectionEventKind;
+			import mx.events.FlexEvent;
+			
+			import utils.chat.room.Room;
+			import utils.protocol.ProtocolKeys;
+			import utils.protocol.ProtocolValues;
+			import utils.user.User;
+			import utils.vk.api.serialization.json.JSON;
+			
+			private var _sid:int = -1;
+			[Bindable]
+			private var collection:ArrayCollection;
+			
+			protected function inptext_focusInHandler(event:FocusEvent):void
+			{
+				usersList.visible = usersList.includeInLayout = false;
+				infoLbl.visible = infoLbl.includeInLayout = true;
+				
+				infoLbl.text = "Введите фразу для поиска пользователей online на верхней панели (минимум 3 символа).";
+				
+				serchicon.visible = false;
+			}
+			
+			protected function inptext_focusOutHandler(event:FocusEvent):void
+			{
+				if(_sid != -1){
+					clearInterval(_sid);
+				}
+				_sid = setInterval(onClearSearch, 1000);
+			}
+			
+			private function onClearSearch():void{
+				if(_sid != -1){
+					clearInterval(_sid);
+				}
+				
+				inptext.text = "";
+				serchicon.visible = true;
+				
+				usersList.dataProvider = GameApplication.app.models.usersOfLastMessages;
+				
+				usersList.visible = usersList.includeInLayout = true;
+				infoLbl.visible = infoLbl.includeInLayout = false;
+			}
+			
+			protected function group1_initializeHandler(event:FlexEvent):void
+			{
+				usersList.dataProvider = GameApplication.app.models.usersOfLastMessages;
+				
+				usersList.visible = usersList.includeInLayout = true;
+				infoLbl.visible = infoLbl.includeInLayout = false;
+				
+				inptext.textinput.addEventListener(Event.CHANGE, onChange, false, 0, true);
+			}
+			
+			private function onChange(e:Event):void
+			{
+				usersList.visible = usersList.includeInLayout = false;
+				infoLbl.visible = infoLbl.includeInLayout = true;
+				if(inptext.textinput.text.length > 2){
+					infoLbl.text = "Поиск...";
+				}else{
+					collection = new ArrayCollection();
+					infoLbl.text = "Введите фразу для поиска пользователей online на верхней панели (минимум 3 символа)";
+				}
+				
+				if(_sid != -1){
+					clearInterval(_sid);
+				}
+				_sid = setInterval(getUsers, 2000);
+			}
+			
+			private function getUsers():void{
+				if(_sid != -1){
+					clearInterval(_sid);
+				}
+				
+				collection = new ArrayCollection();
+				if(inptext.textinput.text.length > 2){
+					infoLbl.text = "Поиск...";
+					GameApplication.app.callsmanager.call(ProtocolValues.GET_ONLINE_USERS, onGetOnlineUsers, inptext.textinput.text);
+				}else{
+					infoLbl.text = "Введите фразу для поиска пользователей online на верхней панели (минимум 3 символа)";
+				}
+			}
+			
+			private function onGetOnlineUsers(obj:Object):void{
+				var users:Array = obj[ProtocolKeys.USERS] as Array;
+				
+				if(users && users.length){
+					usersList.visible = usersList.includeInLayout = true;
+					infoLbl.visible = infoLbl.includeInLayout = false;
+					
+					for(var i:uint = 0; i < users.length; i++){
+						collection.addItem(User.createFromObject(users[i]));
+					}
+					
+					usersList.dataProvider = collection;
+				}else{
+					infoLbl.text = "Нет таких игроков...";
+				}
+			}
+
+			protected function group1_removedFromStageHandler(event:Event):void
+			{
+			}
+
+		]]>
+	</fx:Script>
+	
+	<s:Rect width="100%" height="100%">
+		<s:fill>
+			<s:SolidColor color="0x33353C" alpha=".95"/>
+		</s:fill>
+	</s:Rect>
+	<s:VGroup width="100%" height="100%" gap="3">
+		<s:Group id="titleGroup" width="100%" height="18">
+			<s:Rect width="100%" height="100%">
+				<s:fill>
+					<s:SolidColor color="0x5F6273" alpha="0.95"/>
+				</s:fill>
+			</s:Rect>
+			<s:HGroup verticalAlign="middle" width="100%">
+				<s:Label top="4" id="online" text=" В сети ({GameApplication.app.models.onlineUsersCount})" color="0xdddddd" fontSize="11" textAlign="center" width="100%"/>
+				<s:Group>
+					<s:Rect width="100%" height="100%" left="1" right="1" top="1" bottom="1">
+						<s:fill>
+							<s:SolidColor color="0x252728" alpha=".95"/>
+						</s:fill>
+					</s:Rect>
+					<input:InputText id="inptext" fontSize="12" width="70" height="18" focusIn="inptext_focusInHandler(event)" focusOut="inptext_focusOutHandler(event)"/>
+					<iconswf:IconMXML id="serchicon" iconClass="{SearchIcon}" left="5" top="3"/>
+				</s:Group>
+			</s:HGroup>
+		</s:Group>
+		<s:HGroup id="usersListGroup" width="100%" height="100%" paddingTop="2" paddingLeft="2" paddingRight="2" paddingBottom="2" verticalAlign="middle" horizontalAlign="center">
+			<s:List id="usersList" height="100%" width="100%"
+					contentBackgroundAlpha="0" borderVisible="false"
+					itemRenderer="application.gamecontainer.chat.useronline.ChatUserListRenderer">
+				<s:layout>
+					<s:VerticalLayout gap="2"/>
+				</s:layout>
+			</s:List>
+			<s:Label id="infoLbl" width="100%" color="0xcccccc" textAlign="center"/>
+		</s:HGroup>
+	</s:VGroup>
+</s:Group>

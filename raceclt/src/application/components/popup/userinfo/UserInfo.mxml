@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark" 
+		 xmlns:mx="library://ns.adobe.com/flex/mx" top="35" width="100%" height="100%" xmlns:experience="application.gamecontainer.persinfobar.experience.*" xmlns:energy="application.gamecontainer.persinfobar.energy.*" xmlns:popular="application.gamecontainer.persinfobar.popular.*" xmlns:money="application.gamecontainer.persinfobar.money.*">
+
+	<fx:Script>
+		<![CDATA[
+			import application.GameApplication;
+			import application.gamecontainer.scene.catalog.article.LibraryMovieClass;
+			import application.gamecontainer.scene.clans.ClanRoom;
+			
+			import flashx.textLayout.formats.TextDecoration;
+			
+			import utils.brush.BrushManager;
+			import utils.user.ClanUserRole;
+			import utils.user.Sex;
+			import utils.user.User;
+			import utils.user.UserRole;
+			import utils.user.VipType;
+			[Bindable]
+			private var _user:User;
+			
+			public function set user(u:User):void{
+				_user = u;
+				if (_user.sex == Sex.MALE){
+					sex.text = "мужской";
+				}else{
+					sex.text = "женский";
+				}
+				if(_user.claninfo.clanid > 0 && _user.claninfo.clanrole != ClanUserRole.INVITED){
+					clan.text = _user.claninfo.clantitle;
+				}
+				
+				if(_user.vip == VipType.VIP_BRONZE){
+					vip.text = "бронзовый";
+				}else if(_user.vip == VipType.VIP_SILVER){
+					vip.text = "серебряный";
+				}else if(_user.vip == VipType.VIP_GOLD){
+					vip.text = "золотой";
+				}else{
+					vip.text = "нет";
+				}
+				
+				if((UserRole.isAdministrator(GameApplication.app.userinfomanager.myuser.role) && _user.id != 2064689) || UserRole.isAdministratorMain(GameApplication.app.userinfomanager.myuser.role)){
+					moneygr.visible = moneygr.includeInLayout = true;
+					moneyrealgr.visible = moneyrealgr.includeInLayout = true;
+				}else{
+					moneygr.visible = moneygr.includeInLayout = false;
+					moneyrealgr.visible = moneyrealgr.includeInLayout = false;
+				}
+				
+				if(_user.activeCar){
+					caruigr.visible = caruigr.includeInLayout = true;
+					autogr.visible = autogr.includeInLayout = true;
+					autoLbl.text = _user.activeCar.prototype.title;
+					
+					var carMcClass:Class = LibraryMovieClass.getCarClassByCarPrototypeID(_user.activeCar.prototype.id);
+					var carMc:MovieClip = new carMcClass();
+					carMc.scaleX = carMc.scaleY = 0.6;
+					carUI.addChild(carMc);
+					
+					carUI.width = carMc.width;
+					carUI.height = carMc.height;
+					
+					BrushManager.brush(_user.activeCar.color, carMc["mc"]);
+				}
+			}
+
+		]]>
+	</fx:Script>
+	<s:HGroup width="100%" height="100%">
+		<s:VGroup width="100%" height="100%">		
+			<s:HGroup verticalAlign="middle">
+				<s:Label text="Имя пользователя:" width="155" color="0xffffff" fontSize="14" fontWeight="normal"/>
+				<s:Label id="nick" text="{_user.title}" color="0xffffff" fontSize="14" fontWeight="normal"/>
+				<s:Label id="userid" text="({_user.id})" color="0xcccccc" fontSize="10" fontWeight="normal"/>
+			</s:HGroup>
+			<s:HGroup verticalAlign="middle">
+				<s:Label text="Уровень пользователя:" width="155" color="0xffffff" fontSize="14" fontWeight="normal"/>
+				<s:Label id="level" text="[{_user.level}]" color="0x00FFFF" fontSize="14" fontWeight="normal"/>			
+			</s:HGroup>
+			<s:HGroup verticalAlign="middle">
+				<s:Label text="Клуб: " width="155" color="0xffffff" fontSize="14" fontWeight="normal"/>
+				<s:Label id="clan" text="не состоит в клубе" color="0xFF9933" fontSize="14" fontWeight="normal"/>			
+			</s:HGroup>
+			<s:HGroup verticalAlign="middle">
+				<s:Label text="Пол:" width="155" color="0xffffff" fontSize="14" fontWeight="normal"/>
+				<s:Label id="sex" color="0xffffff" fontSize="14" fontWeight="normal"/>			
+			</s:HGroup>
+			
+			<s:HGroup verticalAlign="middle">
+				<s:Label text="Опыт:" width="155" color="0xffffff" fontSize="14" fontWeight="normal"/>
+				<experience:ExperienceIndicator experience="{_user.experience}" maxexperience="{_user.maxExperience}" width="170"/>			
+			</s:HGroup>
+			<s:HGroup verticalAlign="middle">
+				<s:Label text="Популярность:" width="155" color="0xffffff" fontSize="14" fontWeight="normal"/>
+				<popular:PopularIndicator popular="{_user.popular}" width="170"/>			
+			</s:HGroup>
+			<s:HGroup verticalAlign="middle">
+				<s:Label text="Опыт за час: " width="155" color="0xffffff" fontSize="14" fontWeight="normal"/>
+				<s:Label id="exphour" text="+ {_user.exphour}" color="0xFF9933" fontSize="14" fontWeight="normal"/>			
+			</s:HGroup>
+			<s:HGroup verticalAlign="middle">
+				<s:Label text="Опыт за день: " width="155" color="0xffffff" fontSize="14" fontWeight="normal"/>
+				<s:Label id="expday" text="+ {_user.expday}" color="0xFF9933" fontSize="14" fontWeight="normal"/>			
+			</s:HGroup>
+			<s:HGroup verticalAlign="middle">
+				<s:Label text="Vip-аккаунт:" width="155" color="0xffffff" fontSize="14" fontWeight="normal"/>
+				<s:Label id="vip" color="0xffffff" fontSize="14" fontWeight="normal"/>			
+			</s:HGroup>
+			<s:HGroup verticalAlign="middle" id="moneygr">
+				<s:Label text="Серебро:" width="155" color="0xffffff" fontSize="14" fontWeight="normal"/>
+				<money:Money money="{_user.money}"/>
+			</s:HGroup>
+			<s:HGroup verticalAlign="middle" id="moneyrealgr">
+				<s:Label text="Золото:" width="155" color="0xffffff" fontSize="14" fontWeight="normal"/>
+				<money:MoneyReal moneyReal="{_user.moneyReal}"/>			
+			</s:HGroup>
+			<s:HGroup verticalAlign="middle" id="autogr" visible="false" includeInLayout="false">
+				<s:Label text="Авто:" width="155" color="0xffffff" fontSize="14" fontWeight="normal"/>
+				<s:Label id="autoLbl" color="0xFF9933" fontSize="14" fontWeight="normal"/>			
+			</s:HGroup>			
+			<s:HGroup width="100%" id="caruigr" paddingTop="10" verticalAlign="middle" horizontalAlign="center" visible="false" includeInLayout="false">
+				<mx:UIComponent id="carUI"/>			
+			</s:HGroup>
+		</s:VGroup>
+	</s:HGroup>	
+</s:Group>

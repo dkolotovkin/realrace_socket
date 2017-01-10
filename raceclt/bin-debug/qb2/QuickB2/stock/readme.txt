@@ -1,1 +1,0 @@
-This folder contains some useful classes that extend from the core classes in the objects.tangibles folder.  There's also qb2Stock, a class containing only static functions that serve in place of overloaded constructors, which are not allowed in ActionScript 3.0.

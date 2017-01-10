@@ -1,1 +1,0 @@
-This folder contains classes for internal use only.  Don't use them...in fact, forget you were even here.
